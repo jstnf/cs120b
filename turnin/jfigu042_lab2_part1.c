@@ -18,7 +18,7 @@ int main(void) {
     DDRB = 0x01; PORTB = 0x00;
     /* Insert your solution below */
     while (1) {
-        if (PINA == 0x01) {
+        if ((PINA & 0x03) == 0x01) {
             PORTB = 0x01;
         } else {
             PORTB = 0x00;

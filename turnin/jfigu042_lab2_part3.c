@@ -29,7 +29,7 @@ int main(void) {
             }
             tmpA = tmpA >> 1;
         }
-        if (PINA == 0x0F) { cntavail = cntavail | 0x08; }
+        if ((PINA & 0x0F) == 0x0F) { cntavail = cntavail | 0x80; }
         PORTC = cntavail;
     }
     return 1;
