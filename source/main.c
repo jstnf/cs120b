@@ -17,12 +17,14 @@ int main(void) {
     DDRA = 0x00; PORTA = 0x00;
     DDRC = 0x07; PORTC = 0x00;
     /* Insert your solution below */
-    unsigned char tmpA;
-    unsigned char cntavail;
+    unsigned char tmpA = 0x00;
+    unsigned char cntavail = 0x00;
     while (1) {
+        cntavail = 0x00;
         tmpA = PINA;
-        for (int i = 0; i < 4; i++) {
-            if (tmpA & 0x01 == 0x00) {
+        int counter = 0;
+        for (counter = 0; counter < 4; counter++) {
+            if ((tmpA & 0x01) == 0x00) {
                 cntavail += 1;
             }
             tmpA = tmpA >> 1;
