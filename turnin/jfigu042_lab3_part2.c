@@ -18,18 +18,20 @@ int main(void) {
     DDRC = 0x3F; PORTC = 0x00;
 
     /* Insert your solution below */
+    unsigned char tmpA = 0x00;
     unsigned char result = 0x00;
     while (1) {
         result = 0x00;
-        if (PINA > 0x00) {
+        tmpA = PINA & 0x0F;
+        if (tmpA > 0x00) {
             result = result | 0x20;
-            if (PINA > 0x02) {
+            if (tmpA > 0x02) {
                 result = result | 0x10;
-                if (PINA > 0x04) {
+                if (tmpA > 0x04) {
                     result = result | 0x08;
-                    result = (PINA > 0x06) ? result | 0x04 : result;
-                    result = (PINA > 0x09) ? result | 0x02 : result;
-                    result = (PINA > 0x0C) ? result | 0x01 : result;
+                    result = (tmpA > 0x06) ? result | 0x04 : result;
+                    result = (tmpA > 0x09) ? result | 0x02 : result;
+                    result = (tmpA > 0x0C) ? result | 0x01 : result;
                 } else {
                     result = result | 0x40;
                 }
