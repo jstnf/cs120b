@@ -42,7 +42,7 @@ int main(void) {
             result = 0x40;
         }
         
-        result = ((PINA & 0x30) == 0x30) ? result | 0x80 : result;
+        result = ((PINA & 0x70) == 0x30) ? result | 0x80 : result;
         PORTC = result;
     }
     return 1;
