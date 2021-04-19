@@ -33,7 +33,7 @@ void TickFct_Switch() {
     }
     
     switch (SM_STATE) {
-        case SM_Switch;
+        case SM_Switch:
             currLightState = currLightState >> 1;
             if ((currLightState & 0x03) == 0x00) currLightState += 0x02;
             PORTB = currLightState;
