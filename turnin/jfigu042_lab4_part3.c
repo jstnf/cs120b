@@ -23,7 +23,7 @@ void TickFct_LockSystem() {
             break;
         case SM_Wait:
             if ((PINA & 0xFF) == 0x00) SM_STATE = SM_Wait; // We have done nothing, just sit and wait
-            if ((PINA & 0xFF) == 0x04) SM_STATE = SM_Wait1Rise; // Start initiating right sequence
+            else if ((PINA & 0xFF) == 0x04) SM_STATE = SM_Wait1Rise; // Start initiating right sequence
             else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
         case SM_Wait1Rise:
