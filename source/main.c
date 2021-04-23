@@ -28,7 +28,7 @@ void TickFct_Counter() {
             break;
         case SM_Increment:
             if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            SM_STATE = SM_WaitIncrementFall;
+            else SM_STATE = SM_WaitIncrementFall;
             break;
         case SM_WaitIncrementFall:
             if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
@@ -36,7 +36,7 @@ void TickFct_Counter() {
             break;
         case SM_Decrement:
             if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            SM_STATE = SM_WaitDecrementFall;
+            else SM_STATE = SM_WaitDecrementFall;
             break;
         case SM_WaitDecrementFall:
             if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
