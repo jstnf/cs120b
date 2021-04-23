@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #4 Exercise #2
+ *	Assignment: Lab #4 Exercise #3
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -12,56 +12,48 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM_STATES { SM_SMStart, SM_WaitRise, SM_Increment, SM_WaitIncrementFall, SM_Decrement, SM_WaitDecrementFall, SM_Reset, SM_WaitResetFall } SM_STATE;
+enum SM_STATES { SM_SMStart, SM_Wait, SM_Wait1Rise, SM_Wait1Fall, SM_Unlock, SM_Lock } SM_STATE;
 
-unsigned char currAmount = 0x07;
+unsigned char currState = 0x00;
 
-void TickFct_Counter() {
+void TickFct_LockSystem() {
     switch (SM_STATE) {
         case SM_SMStart:
-            SM_STATE = SM_WaitRise;
+            SM_STATE = SM_Wait;
             break;
-        case SM_WaitRise:
-            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else if ((PINA & 0x03) == 0x01) SM_STATE = SM_Increment;
-            else if ((PINA & 0x03) == 0x02) SM_STATE = SM_Decrement;
+        case SM_Wait:
+            if ((PINA & 0xFF) == 0x00) SM_STATE = SM_Wait; // We have done nothing, just sit and wait
+            if ((PINA & 0xFF) == 0x04) SM_STATE = SM_Wait1Rise; // Start initiating right sequence
+            else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
-        case SM_Increment:
-            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else SM_STATE = SM_WaitIncrementFall;
+        case SM_Wait1Rise:
+            if ((PINA & 0xFF) == 0x04) SM_STATE = SMWait1Rise; // Have not released the button yet
+            else if ((PINA & 0xFF) == 0x00) SM_STATE = SMWait1Fall; // We released the button and have not pressed anything else
+            else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
-        case SM_WaitIncrementFall:
-            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else if ((PINA & 0x03) == 0x00) SM_STATE = SM_WaitRise;
+        case SM_Wait1Fall:
+            if ((PINA & 0xFF) == 0x00) SM_STATE = SMWait1Fall; // Have not pressed anything else yet
+            else if ((PINA & 0xFF) == 0x02) SM_STATE = SM_Unlock; // Right combination!
+            else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
-        case SM_Decrement:
-            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else SM_STATE = SM_WaitDecrementFall;
+        case SM_Unlock:
+            SM_STATE = SM_Wait; // Now we wait
             break;
-        case SM_WaitDecrementFall:
-            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else if ((PINA & 0x03) == 0x00) SM_STATE = SM_WaitRise;
-            break;
-        case SM_Reset:
-            SM_STATE = SM_WaitResetFall;
-            break;
-        case SM_WaitResetFall:
-            if ((PINA & 0x03) == 0x00) SM_STATE = SM_WaitRise;
+        case SM_Lock;
+            SM_STATE = SM_Wait; // Now we wait
             break;
     }
     
     switch (SM_STATE) {
-        case SM_Increment:
-            if (currAmount != 0x09) currAmount++;
-            PORTC = currAmount;
+        case SM_Wait1Rise:
+        case SM_Wait1Fall:
+        case SM_Lock:
+            currState = 0x00;
+            PORTB = currState;
             break;
-        case SM_Decrement:
-            if (currAmount != 0x00) currAmount--;
-            PORTC = currAmount;
-            break;
-        case SM_Reset:
-            currAmount = 0x00;
-            PORTC = currAmount;
+        case SM_Unlock:
+            currState = 0x01;
+            PORTB = currState;
             break;
         default:
             break;
@@ -70,9 +62,9 @@ void TickFct_Counter() {
 
 int main() {
     DDRA = 0x00, PORTA = 0x00;
-    DDRB = 0x0F, PORTC = 0x07;
+    DDRB = 0x01, PORTB = 0x00;
 
     while (1) {
-        TickFct_Counter();
+        TickFct_LockSystem();
     }
 }

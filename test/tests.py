@@ -14,16 +14,16 @@
 # An example set of tests is shown below. It is important to note that these tests are not "unit tests" in 
 # that they are not ran in isolation but in the order shown and the state of the device is not reset or 
 # altered in between executions (unless preconditions are used).
-tests = [ {'description': 'Test counter functionality.',
-    'steps': [ {'inputs': [('PINA', 0x00)], 'iterations': 5, 'expected': [('PORTC',0x07)]}, 
-        {'inputs': [('PINA',0x01)], 'iterations': 5, 'expected': [('PORTC',0x08)]}, 
-        {'inputs': [('PINA',0x00)], 'iterations': 5, 'expected': [('PORTC',0x08)]}, 
-        {'inputs': [('PINA',0x02)], 'iterations': 5, 'expected': [('PORTC',0x07)]}, 
-        {'inputs': [('PINA',0x00)], 'iterations': 5, 'expected': [('PORTC',0x07)]}, 
-        {'inputs': [('PINA',0x01)], 'iterations': 5, 'expected': [('PORTC',0x08)]}, 
-        {'inputs': [('PINA',0x03)], 'iterations': 5, 'expected': [('PORTC',0x00)]}, 
-        {'inputs': [('PINA',0x00)], 'iterations': 5, 'expected': [('PORTC',0x00)]}, ],
-    'expected': [('PORTC',0x00)],
+tests = [ {'description': 'Test lock system functionality.',
+    'steps': [ {'inputs': [('PINA', 0x00)], 'iterations': 5, 'expected': [('PORTB',0x00)]}, 
+        {'inputs': [('PINA',0x01)], 'iterations': 5, 'expected': [('PORTB',0x00)]}, 
+        {'inputs': [('PINA',0x00)], 'iterations': 5, 'expected': [('PORTB',0x00)]}, 
+        {'inputs': [('PINA',0x04)], 'iterations': 5, 'expected': [('PORTB',0x00)]}, 
+        {'inputs': [('PINA',0x00)], 'iterations': 5, 'expected': [('PORTB',0x00)]}, 
+        {'inputs': [('PINA',0x02)], 'iterations': 5, 'expected': [('PORTB',0x01)]}, 
+        {'inputs': [('PINA',0x00)], 'iterations': 5, 'expected': [('PORTB',0x01)]}, 
+        {'inputs': [('PINA',0x07)], 'iterations': 5, 'expected': [('PORTB',0x00)]}, ],
+    'expected': [('PORTB',0x00)],
     },
     ]
 
