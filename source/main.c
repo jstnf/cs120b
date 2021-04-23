@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #4 Exercise #1
+ *	Assignment: Lab #4 Exercise #2
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -12,45 +12,65 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM_STATES { SM_SMStart, SM_WaitRise, SM_Switch, SM_WaitFall } SM_STATE;
+enum SM_STATES { SM_SMStart, SM_WaitRise, SM_Increment, SM_WaitIncrementFall, SM_Decrement, SM_WaitDecrementFall, SM_Reset, SM_WaitResetFall } SM_STATE;
 
-unsigned char currLightState = 0x01;
+unsigned char currAmount = 0x07;
 
-void TickFct_Switch() {
+void TickFct_Counter() {
     switch (SM_STATE) {
         case SM_SMStart:
             SM_STATE = SM_WaitRise;
             break;
         case SM_WaitRise:
-            if ((PINA & 0x01) == 0x01) SM_STATE = SM_Switch;
+            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
+            else if ((PINA & 0x03) == 0x01) SM_STATE = SM_Increment;
+            else if ((PINA & 0x03) == 0x02) SM_STATE = SM_Decrement;
             break;
-        case SM_Switch:
-            SM_STATE = SM_WaitFall;
+        case SM_Increment:
+            SM_STATE = SM_WaitIncrementFall;
             break;
-        case SM_WaitFall:
-            if ((PINA & 0x01) == 0x00) SM_STATE = SM_WaitRise;
+        case SM_WaitIncrementFall:
+            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
+            else if ((PINA & 0x01) == 0x00) SM_STATE = SM_WaitRise;
+            break;
+        case SM_Decrement:
+            SM_STATE = SM_WaitDecrementFall;
+            break;
+        case SM_WaitDecrementFall:
+            if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
+            else if ((PINA & 0x02) == 0x00) SM_STATE = SM_WaitRise;
+            break;
+        case SM_Reset:
+            SM_STATE = SM_WaitResetFall;
+            break;
+        case SM_WaitResetFall:
+            if ((PINA & 0x03) == 0x00) SM_STATE = SM_WaitRise;
             break;
     }
     
     switch (SM_STATE) {
-        case SM_Switch:
-            currLightState = currLightState >> 1;
-            if ((currLightState & 0x03) == 0x00) currLightState += 0x02;
-            PORTB = currLightState;
+        case SM_Increment:
+            if (currAmount != 0x09) currAmount++;
+            PORTC = currAmount;
+            break;
+        case SM_Decrement:
+            if (currAmount != 0x00) currAmount--;
+            PORTC = currAmount;
+            break;
+        case SM_Reset:
+            currAmount = 0x00;
+            PORTC = currAmount;
             break;
         default:
             break;
     }
 }
 
-int main(void) {
-    /* Insert DDR and PORT initializations */
+int main() {
     DDRA = 0x00, PORTA = 0x00;
-    DDRB = 0x03, PORTB = 0x01;
+    DDRB = 0x0F, PORTC = 0x07;
 
-    /* Insert your solution below */
     while (1) {
-        TickFct_Switch();
+        TickFct_Counter();
     }
-    return 1;
 }
