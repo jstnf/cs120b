@@ -27,19 +27,19 @@ void TickFct_LockSystem() {
             else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
         case SM_Wait1Rise:
-            if ((PINA & 0xFF) == 0x04) SM_STATE = SMWait1Rise; // Have not released the button yet
+            if ((PINA & 0xFF) == 0x04) SM_STATE = SM_Wait1Rise; // Have not released the button yet
             else if ((PINA & 0xFF) == 0x00) SM_STATE = SMWait1Fall; // We released the button and have not pressed anything else
             else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
         case SM_Wait1Fall:
-            if ((PINA & 0xFF) == 0x00) SM_STATE = SMWait1Fall; // Have not pressed anything else yet
+            if ((PINA & 0xFF) == 0x00) SM_STATE = SM_Wait1Fall; // Have not pressed anything else yet
             else if ((PINA & 0xFF) == 0x02) SM_STATE = SM_Unlock; // Right combination!
             else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
         case SM_Unlock:
             SM_STATE = SM_Wait; // Now we wait
             break;
-        case SM_Lock;
+        case SM_Lock:
             SM_STATE = SM_Wait; // Now we wait
             break;
     }
