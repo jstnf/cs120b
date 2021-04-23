@@ -12,7 +12,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM_STATES { SM_SMStart, SM_Wait, SM_Wait1Rise, SM_Wait1Fall, SM_Unlock, SM_Lock } SM_STATE;
+enum SM_STATES { SM_SMStart, SM_Wait, SM_Wait1Rise, SM_Wait1Fall, SM_Unlock, SM_UnlockFall, SM_Lock } SM_STATE;
 
 unsigned char currState = 0x00;
 
@@ -37,7 +37,13 @@ void TickFct_LockSystem() {
             else SM_STATE = SM_Lock; // Wrong combination or locked door
             break;
         case SM_Unlock:
-            SM_STATE = SM_Wait; // Now we wait
+            SM_STATE = SM_UnlockFall; // Now we wait
+            break;
+        case SM_UnlockFall:
+            if ((PINA & 0x80) == 0x80) SM_STATE = SM_Lock; // Lock button takes all precedence
+            else if ((PINA & 0xFF) == 0x02) SM_STATE = SM_UnlockFall; // We still have not released the button
+            else if ((PINA & 0xFF) != 0x00) SM_STATE = SM_Lock; // We did the wrong combination
+            else SM_STATE = SM_Wait; // Released all buttons, now we wait
             break;
         case SM_Lock:
             SM_STATE = SM_Wait; // Now we wait
