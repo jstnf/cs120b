@@ -31,14 +31,14 @@ void TickFct_Counter() {
             break;
         case SM_WaitIncrementFall:
             if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else if ((PINA & 0x01) == 0x00) SM_STATE = SM_WaitRise;
+            else if ((PINA & 0x03) == 0x00) SM_STATE = SM_WaitRise;
             break;
         case SM_Decrement:
             SM_STATE = SM_WaitDecrementFall;
             break;
         case SM_WaitDecrementFall:
             if ((PINA & 0x03) == 0x03) SM_STATE = SM_Reset;
-            else if ((PINA & 0x02) == 0x00) SM_STATE = SM_WaitRise;
+            else if ((PINA & 0x03) == 0x00) SM_STATE = SM_WaitRise;
             break;
         case SM_Reset:
             SM_STATE = SM_WaitResetFall;
