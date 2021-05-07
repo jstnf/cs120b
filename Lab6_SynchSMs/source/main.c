@@ -60,15 +60,15 @@ void TickFct_Counter() {
     switch (SM_STATE) {
         case SM_Increment:
             if (currAmount != 0x09) currAmount++;
-            PORTC = currAmount;
+            PORTB = currAmount;
             break;
         case SM_Decrement:
             if (currAmount != 0x00) currAmount--;
-            PORTC = currAmount;
+            PORTB = currAmount;
             break;
         case SM_Reset:
             currAmount = 0x00;
-            PORTC = currAmount;
+            PORTB = currAmount;
             break;
         default:
             break;
