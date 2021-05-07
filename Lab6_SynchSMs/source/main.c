@@ -18,6 +18,7 @@
 enum SM_STATES { SM_SMStart, SM_WaitRise, SM_Increment, SM_WaitIncrementFall, SM_Decrement, SM_WaitDecrementFall, SM_Reset, SM_WaitResetFall } SM_STATE;
 
 unsigned char currAmount = 0x07;
+unsigned char internalTimer = 0x00;
 
 void TickFct_Counter() {
     switch (SM_STATE) {
@@ -59,12 +60,32 @@ void TickFct_Counter() {
     
     switch (SM_STATE) {
         case SM_Increment:
+            timerInternal = 0x00;
             if (currAmount != 0x09) currAmount++;
             PORTB = currAmount;
             break;
+        case SM_WaitIncrementFall:
+            if (timerInternal < 0x0A) {
+                timerInternal++;
+            } else {
+                timerInternal = 0x00;
+                if (currAmount != 0x09) currAmount++;
+                PORTB = currAmount;
+            }
+            break;
         case SM_Decrement:
+            timerInternal = 0x00;
             if (currAmount != 0x00) currAmount--;
             PORTB = currAmount;
+            break;
+        case SM_WaitDecrementFall:
+            if (timerInternal < 0x0A) {
+                timerInternal++;
+            } else {
+                timerInternal = 0x00;
+                if (currAmount != 0x00) currAmount--;
+                PORTB = currAmount;
+            }
             break;
         case SM_Reset:
             currAmount = 0x00;
@@ -79,7 +100,7 @@ int main() {
     DDRA = 0x00, PORTA = 0xFF;
     DDRB = 0x0F, PORTB = 0x07;
     
-    TimerSet(300);
+    TimerSet(100);
     TimerOn();
     
     SM_STATE = SM_SMStart;
