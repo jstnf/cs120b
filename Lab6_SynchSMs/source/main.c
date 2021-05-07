@@ -80,6 +80,7 @@ void TickFct_Pattern() {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
+    DDRA = 0x00; PORTA = 0xFF;
     DDRB = 0x07; PORTB = 0x00;
     
     TimerSet(300);
