@@ -24,20 +24,20 @@ unsigned short MAX = 0x0300;
 int main(void) {
     /* Insert DDR and PORT initializations */
     DDRA = 0x00; PORTA = 0x00;
-    DDRB = 0x01; PORTB = 0x00;
+    DDRB = 0xFF; PORTB = 0x00;
 
     ADC_init();
 
     /* Insert your solution below */
     while (1) {
         x = ADC;
-        unsigned char div = (char) (MAX/8);
+        unsigned char div = (char) (MAX/10);
         unsigned char i = 0x00;
         unsigned char temp = 0x00;
         for (i = 0x00; i < 0x08; i++) {
-            if (x < (div * i) break;
+            if (x < (div * i)) break;
             temp = temp << 1;
-            temp += 0x01;
+            temp = temp + 0x01;;
         }
         PORTB = temp;
     }
