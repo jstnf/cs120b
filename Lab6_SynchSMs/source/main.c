@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #6 Exercise #2
+ *	Assignment: Lab #6 Exercise #3
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -15,94 +15,79 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM_STATES { SM_SMStart, SM_Pattern1, SM_Pattern2Down, SM_Pattern2Up, SM_Pattern3, SM_Stopped, SM_WaitRise, SM_WaitFall } SM_STATE;
+enum SM_STATES { SM_SMStart, SM_WaitRise, SM_Increment, SM_WaitIncrementFall, SM_Decrement, SM_WaitDecrementFall, SM_Reset, SM_WaitResetFall } SM_STATE;
 
-void TickFct_Pattern() {
+unsigned char currAmount = 0x07;
+
+void TickFct_Counter() {
     switch (SM_STATE) {
         case SM_SMStart:
-            SM_STATE = SM_Pattern1;
-            break;
-        case SM_Pattern3:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_Stopped;
-            } else {
-                SM_STATE = SM_Pattern2Up;
-            }
-            break;
-        case SM_Pattern1:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_Stopped;
-            } else {
-                SM_STATE = SM_Pattern2Down;
-            }
-            break;
-        case SM_Pattern2Up:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_Stopped;
-            } else {
-                SM_STATE = SM_Pattern1;
-            }
-            break;
-        case SM_Pattern2Down:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_Stopped;
-            } else {
-                SM_STATE = SM_Pattern3;
-            }
-            break;
-        case SM_Stopped:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_Stopped; // Do nothing since button is still pressed
-            } else {
-                SM_STATE = SM_WaitRise; // Now transition to wait since button is not pressed
-            }
+            SM_STATE = SM_WaitRise;
             break;
         case SM_WaitRise:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_WaitFall;
-            }
+            if ((PINA & 0x03) == 0x00) SM_STATE = SM_Reset;
+            else if ((PINA & 0x03) == 0x02) SM_STATE = SM_Increment;
+            else if ((PINA & 0x03) == 0x01) SM_STATE = SM_Decrement;
             break;
-        case SM_WaitFall:
-            if (~PINA & 0x01) {
-                SM_STATE = SM_WaitFall; // Do nothing since button is still pressed
-            } else {
-                SM_STATE = SM_Pattern1;
-            }
+        case SM_Increment:
+            if ((PINA & 0x03) == 0x00) SM_STATE = SM_Reset;
+            else if ((PINA & 0x03) == 0x01) SM_STATE = SM_Decrement;
+            else SM_STATE = SM_WaitIncrementFall;
+            break;
+        case SM_WaitIncrementFall:
+            if ((PINA & 0x03) == 0x00) SM_STATE = SM_Reset;
+            else if ((PINA & 0x03) == 0x01) SM_STATE = SM_Decrement;
+            else if ((PINA & 0x03) == 0x03) SM_STATE = SM_WaitRise;
+            break;
+        case SM_Decrement:
+            if ((PINA & 0x03) == 0x00) SM_STATE = SM_Reset;
+            else if ((PINA & 0x03) == 0x02) SM_STATE = SM_Increment;
+            else SM_STATE = SM_WaitDecrementFall;
+            break;
+        case SM_WaitDecrementFall:
+            if ((PINA & 0x03) == 0x00) SM_STATE = SM_Reset;
+            else if ((PINA & 0x03) == 0x02) SM_STATE = SM_Increment;
+            else if ((PINA & 0x03) == 0x03) SM_STATE = SM_WaitRise;
+            break;
+        case SM_Reset:
+            SM_STATE = SM_WaitResetFall;
+            break;
+        case SM_WaitResetFall:
+            if ((PINA & 0x03) == 0x03) SM_STATE = SM_WaitRise;
             break;
     }
     
     switch (SM_STATE) {
-        case SM_Pattern1:
-            PORTB = 0x01;
+        case SM_Increment:
+            if (currAmount != 0x09) currAmount++;
+            PORTC = currAmount;
             break;
-        case SM_Pattern2Up:
-        case SM_Pattern2Down:
-            PORTB = 0x02;
+        case SM_Decrement:
+            if (currAmount != 0x00) currAmount--;
+            PORTC = currAmount;
             break;
-        case SM_Pattern3:
-            PORTB = 0x04;
+        case SM_Reset:
+            currAmount = 0x00;
+            PORTC = currAmount;
             break;
         default:
             break;
     }
 }
 
-int main(void) {
-    /* Insert DDR and PORT initializations */
-    DDRA = 0x00; PORTA = 0xFF;
-    DDRB = 0x07; PORTB = 0x00;
+int main() {
+    DDRA = 0x00, PORTA = 0xFF;
+    DDRB = 0x0F, PORTB = 0x07;
     
     TimerSet(300);
     TimerOn();
     
     SM_STATE = SM_SMStart;
 
-    /* Insert your solution below */
     while (1) {
-        TickFct_Pattern();
+        TickFct_Counter();
         
         while (!TimerFlag) { }
         TimerFlag = 0;
     }
-    return 1;
 }
