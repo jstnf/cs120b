@@ -13,7 +13,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum SM_STATES { SM_SMStart, SM_Pattern1, SM_Pattern2Down, SM_Pattern2Up, SM_Pattern3, SM_Stopped, SM_Wait } SM_STATE;
+enum SM_STATES { SM_SMStart, SM_Pattern1, SM_Pattern2Down, SM_Pattern2Up, SM_Pattern3, SM_Stopped, SM_WaitRise, SM_WaitFall } SM_STATE;
 
 void TickFct_Pattern() {
     switch (SM_STATE) {
@@ -52,11 +52,18 @@ void TickFct_Pattern() {
             if (~PINA & 0x01) {
                 SM_STATE = SM_Stopped; // Do nothing since button is still pressed
             } else {
-                SM_STATE = SM_Wait; // Now transition to wait since button is not pressed
+                SM_STATE = SM_WaitRise; // Now transition to wait since button is not pressed
             }
             break;
-        case SM_Wait:
+        case SM_WaitRise:
             if (~PINA & 0x01) {
+                SM_STATE = SM_WaitFall;
+            }
+            break;
+        case SM_WaitFall:
+            if (~PINA & 0x01) {
+                SM_STATE = SM_WaitFall; // Do nothing since button is still pressed
+            } else {
                 SM_STATE = SM_Pattern1;
             }
             break;
