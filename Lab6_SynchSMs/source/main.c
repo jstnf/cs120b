@@ -21,16 +21,32 @@ void TickFct_Pattern() {
             SM_STATE = SM_Pattern1;
             break;
         case SM_Pattern3:
-            SM_STATE = SM_Pattern2Up;
+            if (~PINA & 0x01) {
+                SM_STATE = SM_Stopped;
+            } else {
+                SM_STATE = SM_Pattern2Up;
+            }
             break;
         case SM_Pattern1:
-            SM_STATE = SM_Pattern2Down;
+            if (~PINA & 0x01) {
+                SM_STATE = SM_Stopped;
+            } else {
+                SM_STATE = SM_Pattern2Down;
+            }
             break;
         case SM_Pattern2Up:
-            SM_STATE = SM_Pattern1;
+            if (~PINA & 0x01) {
+                SM_STATE = SM_Stopped;
+            } else {
+                SM_STATE = SM_Pattern1;
+            }
             break;
         case SM_Pattern2Down:
-            SM_STATE = SM_Pattern3;
+            if (~PINA & 0x01) {
+                SM_STATE = SM_Stopped;
+            } else {
+                SM_STATE = SM_Pattern3;
+            }
             break;
         case SM_Stopped:
             if (~PINA & 0x01) {
