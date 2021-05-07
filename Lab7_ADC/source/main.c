@@ -31,10 +31,11 @@ int main(void) {
     /* Insert your solution below */
     while (1) {
         x = ADC;
-        unsigned char div = (char) (x/8);
+        unsigned char div = (char) (MAX/8);
         unsigned char i = 0x00;
         unsigned char temp = 0x00;
-        for (i = 0x00; i < div; i++) {
+        for (i = 0x00; i < 0x08; i++) {
+            if (x < (div * i) break;
             temp = temp << 1;
             temp += 0x01;
         }
