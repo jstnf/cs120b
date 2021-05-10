@@ -10,6 +10,14 @@
  *  Demo Link: <>
  */
 #include <avr/io.h>
+#define ds4 311.13
+#define e4 329.63
+#define fs4 369.99
+#define gs4 415.30
+#define a4 440
+#define b4 493.88
+#define cs5 554.37
+#define d5 587.33
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
@@ -39,15 +47,6 @@ void PWM_off() {
     TCCR3A = 0x00;
     TCCR3B = 0x00;
 }
-
-const double ds4 = 311.13;
-const double e4 = 329.63;
-const double fs4 = 369.99;
-const double gs4 = 415.30;
-const double a4 = 440;
-const double b4 = 493.88;
-const double cs5 = 554.37;
-const double d5 = 587.33;
 
 double notes[75] = { 
     e4, a4, a4, cs5, cs5, 
