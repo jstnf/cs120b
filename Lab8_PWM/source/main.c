@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #8 Exercise #2
+ *	Assignment: Lab #8 Exercise #3
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -40,84 +40,117 @@ void PWM_off() {
     TCCR3B = 0x00;
 }
 
-enum SM1_STATES { SM1_SMStart, SM1_OnRise, SM1_OnFall, SM1_OffRise, SM1_OffFall } SM1_STATE;
-enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_IncrementRise, SM2_IncrementFall, SM2_DecrementRise, SM2_DecrementFall } SM2_STATE;
+double ds4 = 311.13;
+double e4 = 329.63;
+double fs4 = 369.99;
+double gs4 = 415.30;
+double a4 = 440;
+double b4 = 493.88;
+double cs5 = 554.37;
+double d5 = 587.33;
 
-double freqTable[8] = { 261.63, 293.63, 329.63, 349.23, 392, 440, 493.88, 523.25 };
-unsigned short index = 0x00;
+double notes[75] = { 
+    e4, a4, a4, cs5, cs5, 
+    a4, e4, e4, e4, e4, 
+    b4, a4, gs4, fs4, e4, 
+    e4, a4, a4, cs5, cs5, 
+    a4, e4, a4, gs4, fs4, 
+    gs4, a4, ds4, e4, e4, 
+    gs4, gs4, a4, gs4, fs4, 
+    gs4, a4, e4, a4, gs4, 
+    gs4, gs4, d5, b4, gs4, 
+    a4, a4, fs4, fs4, fs4, 
+    a4, a4, e4, e4, e4, 
+    e4, b4, gs4, a4, a4, 
+    gs4, fs4, fs4, fs4, a4, 
+    gs4, b4, a4, e4, e4, 
+    e4, e4, b4, gs4, a4 };
+    
+unsigned char times[75] = { 
+    4, 4, 4, 4, 4, 
+    8, 4, 4, 6, 2, 
+    2, 2, 2, 2, 12, 
+    4, 4, 4, 4, 4, 
+    8, 4, 4, 4, 2, 
+    2, 4, 4, 12, 4, 
+    4, 4, 2, 2, 2, 
+    2, 8, 4, 4, 4, 
+    4, 2, 2, 2, 2, 
+    12, 4, 4, 4, 4, 
+    4, 8, 4, 4, 6, 
+    2, 4, 4, 12, 4, 
+    2, 2, 4, 2, 2, 
+    2, 2, 8, 4, 4, 
+    6, 2, 4, 4, 12 };
+
+unsigned char playing = 0x00;
+unsigned char index = 0x00;
+unsigned char length = 75;
+    
+enum SM1_STATES { SM1_SMStart, SM1_WaitFall, SM1_WaitRise, SM1_Playing } SM1_STATE;
+enum SM2_STATES { SM2_SMStart, SM2_Waiting, SM2_Playing, SM2_Transition, SM2_Done } SM2_STATE;
 
 void TickFct_SM1() {
     switch (SM1_STATE) {
         case SM1_SMStart:
-            SM1_STATE = SM1_OffFall;
+            SM1_STATE = SM1_WaitFall;
             break;
-        case SM1_OnRise:
-            if ((~PINA & 0x01) != 0x01) {
-                SM1_STATE = SM1_OnFall;
-            }
+        case SM1_WaitFall;
+            if (~PINA & 0x01) SM1_STATE = SM1_Playing;
             break;
-        case SM1_OnFall:
-            if (~PINA & 0x01) {
-                SM1_STATE = SM1_OffRise;
-            }
+        case SM1_WaitRise;
+            if ((~PINA & 0x01) == 0x00) SM1_STATE = SM1_WaitFall;
             break;
-        case SM1_OffRise:
-            if ((~PINA & 0x01) != 0x01) {
-                SM1_STATE = SM1_OffFall;
-            }
-            break;
-        case SM1_OffFall:
-            if (~PINA & 0x01) {
-                SM1_STATE = SM1_OnRise;
+        case SM1_Playing;
+            index++;
+            if (index >= length) {
+                SM1_STATE = SM1_WaitRise;
             }
             break;
     }
     
     switch (SM1_STATE) {
-        case SM1_OnRise:
-        case SM1_OnFall:
-            set_PWM(freqTable[index]);
+        case SM1_Playing:
             break;
-        case SM1_OffRise:
-        case SM1_OffFall:
+        default:
             set_PWM(0);
             break;
     }
-    
 }
+
+unsigned char currTime = 0x00;
 
 void TickFct_SM2() {
     switch (SM2_STATE) {
+        case SM2_Done:
+            index = 0;
         case SM2_SMStart:
-            SM2_STATE = SM2_Wait;
+            SM2_STATE = SM2_Waiting;
             break;
-        case SM2_Wait:
-            if ((~PINA & 0x06) == 0x02) {
-                SM2_STATE = SM2_IncrementRise;
-            } else if ((~PINA & 0x06) == 0x04) {
-                SM2_STATE = SM2_DecrementRise;
+        case SM2_Waiting:
+            if (SM1_STATE == SM1_Playing) {
+                SM2_STATE = SM2_Playing;
             }
             break;
-        case SM2_IncrementRise:
-            SM2_STATE = SM2_IncrementFall;
+        case SM2_Playing:
+            currTime += 1;
+            if (currTime >= times[index]) {
+                currTime = 0;
+                SM2_STATE = SM2_Transition;
+            }
             break;
-        case SM2_DecrementRise:
-            SM2_STATE = SM2_DecrementFall;
-            break;
-        case SM2_DecrementFall:
-        case SM2_IncrementFall:
-            if ((~PINA & 0x06) == 0x00) {
-                SM2_STATE = SM2_Wait;
+        case SM2_Transition:
+            if (index < length) {
+                SM2_STATE = SM2_Playing;
+            } else {
+                SM2_STATE = SM2_Done;
             }
             break;
     }
     
     switch (SM2_STATE) {
-        case SM2_IncrementRise:
-            index = index == 0x07 ? index : index + 1;
-            break;
-        case SM2_DecrementRise:
-            index = index == 0x00 ? index : index - 1;
+        case SM2_Playing:
+            set_PWM(notes[index]);
             break;
     }
 }
