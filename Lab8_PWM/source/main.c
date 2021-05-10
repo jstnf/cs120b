@@ -172,6 +172,9 @@ int main(void) {
     while (1) {
         TickFct_SM1();
         TickFct_SM2();
+        
+        while (!TimerFlag);
+        TimerFlag = 0;
     }
     return 1;
 }
