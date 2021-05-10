@@ -10,6 +10,7 @@
  *  Demo Link: <>
  */
 #include <avr/io.h>
+#include <timer>
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
@@ -163,6 +164,8 @@ int main(void) {
     DDRB = 0xFF; PORTB = 0x00;
 
     /* Insert your solution below */
+	TimerSet(150);
+	TimerOn();
     SM1_STATE = SM1_SMStart;
     SM2_STATE = SM2_SMStart;
     PWM_on();
