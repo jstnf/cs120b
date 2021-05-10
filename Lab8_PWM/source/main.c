@@ -43,6 +43,9 @@ void PWM_off() {
 enum SM1_STATES { SM1_SMStart, SM1_OnRise, SM1_OnFall, SM1_OffRise, SM1_OffFall } SM1_STATE;
 enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_IncrementRise, SM2_IncrementFall, SM2_DecrementRise, SM2_DecrementFall } SM2_STATE;
 
+double freqTable[8] = { 261.63, 293.63, 329.63, 349.23, 392, 440, 493.88, 523.25 };
+unsigned short index = 0x00;
+
 void TickFct_SM1() {
     switch (SM1_STATE) {
         case SM1_SMStart:
@@ -118,9 +121,6 @@ void TickFct_SM2() {
             break;
     }
 }
-
-double freqTable[8] = { 261.63, 293.63, 329.63, 349.23, 392, 440, 493.88, 523.25 };
-unsigned short index = 0x00;
 
 int main(void) {
     /* Insert DDR and PORT initializations */
