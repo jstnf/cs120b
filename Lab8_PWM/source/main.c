@@ -103,7 +103,6 @@ void TickFct_SM1() {
             if ((~PINA & 0x01) == 0x00) SM1_STATE = SM1_WaitFall;
             break;
         case SM1_Playing:
-            index++;
             if (index >= length) {
                 SM1_STATE = SM1_WaitRise;
             }
@@ -143,6 +142,7 @@ void TickFct_SM2() {
             }
             break;
         case SM2_Transition:
+            index++;
             if (index < length) {
                 SM2_STATE = SM2_Playing;
             } else {
