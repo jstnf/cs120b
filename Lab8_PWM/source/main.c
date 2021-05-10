@@ -95,13 +95,13 @@ void TickFct_SM1() {
         case SM1_SMStart:
             SM1_STATE = SM1_WaitFall;
             break;
-        case SM1_WaitFall;
+        case SM1_WaitFall:
             if (~PINA & 0x01) SM1_STATE = SM1_Playing;
             break;
-        case SM1_WaitRise;
+        case SM1_WaitRise:
             if ((~PINA & 0x01) == 0x00) SM1_STATE = SM1_WaitFall;
             break;
-        case SM1_Playing;
+        case SM1_Playing:
             index++;
             if (index >= length) {
                 SM1_STATE = SM1_WaitRise;
