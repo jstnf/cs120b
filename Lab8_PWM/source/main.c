@@ -167,7 +167,7 @@ int main(void) {
     DDRB = 0xFF; PORTB = 0x00;
 
     /* Insert your solution below */
-	TimerSet(150);
+	TimerSet(75);
 	TimerOn();
     SM1_STATE = SM1_SMStart;
     SM2_STATE = SM2_SMStart;
