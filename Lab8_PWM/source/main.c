@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #8 Exercise #1
+ *	Assignment: Lab #8 Exercise #2
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -10,7 +10,6 @@
  *  Demo Link: <>
  */
 #include <avr/io.h>
-#include <timer.h>
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
@@ -41,54 +40,87 @@ void PWM_off() {
     TCCR3B = 0x00;
 }
 
-enum SM_STATES { SM_SMStart, SM_Wait, SM_C, SM_D, SM_E } SM_STATE;
+enum SM1_STATES { SM1_SMStart, SM1_OnRise, SM1_OnFall, SM1_OffRise, SM1_OffFall } SM1_STATE;
+enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_IncrementRise, SM2_IncrementFall, SM2_DecrementRise, SM2_DecrementFall } SM2_STATE;
 
-void TickFct_ThreeTones() {
-    switch (SM_STATE) {
-        case SM_SMStart:
-            SM_STATE = SM_Wait;
+void TickFct_SM1() {
+    switch (SM1_STATE) {
+        case SM1_SMStart:
+            SM1_STATE = SM1_OffFall;
             break;
-        case SM_Wait:
-            if ((~PINA & 0x07) == 0x01) {
-               SM_STATE = SM_C;
-            } else if ((~PINA & 0x07) == 0x02) {
-                SM_STATE = SM_D;
-            } else if ((~PINA & 0x07) == 0x04) {
-                SM_STATE = SM_E;
+        case SM1_OnRise:
+            if ((~PINA & 0x01) != 0x01) {
+                SM1_STATE = SM1_OnFall;
             }
             break;
-        case SM_C:
-            if ((~PINA & 0x07) != 0x01) {
-                SM_STATE = SM_Wait;
+        case SM1_OnFall:
+            if (~PINA & 0x01) {
+                SM1_STATE = SM1_OffRise;
             }
             break;
-        case SM_D:
-            if ((~PINA & 0x07) != 0x02) {
-                SM_STATE = SM_Wait;
+        case SM1_OffRise:
+            if ((~PINA & 0x01) != 0x01) {
+                SM1_STATE = SM1_OffFall;
             }
             break;
-        case SM_E:
-            if ((~PINA & 0x07) != 0x04) {
-                SM_STATE = SM_Wait;
+        case SM1_OffFall:
+            if (~PINA & 0x01) {
+                SM1_STATE = SM1_OnRise;
             }
             break;
     }
     
-    switch (SM_STATE) {
-        case SM_C:
-            set_PWM(261.63);
+    switch (SM1_STATE) {
+        case SM1_OnRise:
+        case SM1_OnFall:
+            set_PWM(freqTable[index]);
             break;
-        case SM_D:
-            set_PWM(293.66);
-            break;
-        case SM_E:
-            set_PWM(329.63);
-            break;
-        default:
+        case SM1_OffRise:
+        case SM1_OffFall:
             set_PWM(0);
             break;
     }
+    
 }
+
+void TickFct_SM2() {
+    switch (SM2_STATE) {
+        case SM2_SMStart:
+            SM2_STATE = SM2_Wait;
+            break;
+        case SM2_Wait:
+            if ((~PINA & 0x06) == 0x02) {
+                SM2_STATE = SM2_IncrementRise;
+            } else if ((~PINA & 0x06) == 0x04) {
+                SM2_STATE = SM2_DecrementRise;
+            }
+            break;
+        case SM2_IncrementRise:
+            SM2_STATE = SM2_IncrementFall;
+            break;
+        case SM2_DecrementRise:
+            SM2_STATE = SM2_DecrementFall;
+            break;
+        case SM2_DecrementFall:
+        case SM2_IncrementFall:
+            if ((~PINA & 0x06) == 0x00) {
+                SM2_STATE = SM2_Wait;
+            }
+            break;
+    }
+    
+    switch (SM2_STATE) {
+        case SM2_IncrementRise:
+            index = index == 0x07 ? index : index + 1;
+            break;
+        case SM2_DecrementRise:
+            index = index == 0x00 ? index : index - 1;
+            break;
+    }
+}
+
+double freqTable[8] = { 261.63, 293.63, 329.63, 349.23, 392, 440, 493.88, 523.25 };
+unsigned short index = 0x00;
 
 int main(void) {
     /* Insert DDR and PORT initializations */
@@ -99,7 +131,8 @@ int main(void) {
     SM_STATE = SM_SMStart;
     PWM_on();
     while (1) {
-        TickFct_ThreeTones();
+        TickFct_SM1();
+        TickFct_SM2();
     }
     return 1;
 }
