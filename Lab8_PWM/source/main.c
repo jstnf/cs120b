@@ -97,7 +97,10 @@ void TickFct_SM1() {
             SM1_STATE = SM1_WaitFall;
             break;
         case SM1_WaitFall:
-            if (~PINA & 0x01) SM1_STATE = SM1_Playing;
+            if (~PINA & 0x01) {
+                playing = 0x01;
+                SM1_STATE = SM1_Playing;
+            }
             break;
         case SM1_WaitRise:
             if ((~PINA & 0x01) == 0x00) SM1_STATE = SM1_WaitFall;
@@ -112,7 +115,6 @@ void TickFct_SM1() {
     
     switch (SM1_STATE) {
         case SM1_Playing:
-            playing = 0x01;
             break;
         default:
             set_PWM(0);
