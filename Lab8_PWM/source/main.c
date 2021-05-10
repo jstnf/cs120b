@@ -68,21 +68,21 @@ double notes[75] = {
     e4, e4, b4, gs4, a4 };
     
 unsigned char times[75] = { 
-    12, 12, 12, 12, 12, 
-    24, 12, 12, 18, 6, 
-    6, 6, 6, 6, 36, 
-    12, 12, 12, 12, 12, 
-    8, 12, 12, 12, 6, 
-    6, 12, 12, 36, 12, 
-    12, 12, 6, 6, 6, 
-    6, 24, 12, 12, 12, 
-    12, 6, 6, 6, 6, 
-    36, 12, 12, 12, 12, 
-    12, 24, 12, 12, 18, 
-    6, 12, 12, 36, 12, 
-    6, 6, 12, 6, 6, 
-    6, 6, 24, 12, 12, 
-    18, 6, 12, 12, 12 };
+    30, 30, 30, 30, 30, 
+    60, 30, 30, 45, 15, 
+    15, 15, 15, 15, 90, 
+    30, 30, 30, 30, 30, 
+    60, 30, 30, 30, 15, 
+    15, 30, 30, 90, 30, 
+    30, 30, 15, 15, 15, 
+    15, 60, 30, 30, 30, 
+    30, 15, 15, 15, 15, 
+    90, 30, 30, 30, 30, 
+    30, 60, 30, 30, 45, 
+    15, 30, 30, 90, 30, 
+    15, 15, 30, 15, 15, 
+    15, 15, 60, 30, 30, 
+    45, 15, 30, 30, 30 };
 
 unsigned char playing = 0x00;
 unsigned char index = 0x00;
@@ -105,6 +105,7 @@ void TickFct_SM1() {
         case SM1_Playing:
             if (index >= length) {
                 SM1_STATE = SM1_WaitRise;
+                index = 0;
             }
             break;
     }
@@ -124,7 +125,6 @@ unsigned char currTime = 0x00;
 void TickFct_SM2() {
     switch (SM2_STATE) {
         case SM2_Done:
-            index = 0;
         case SM2_SMStart:
             SM2_STATE = SM2_Waiting;
             break;
@@ -167,7 +167,7 @@ int main(void) {
     DDRB = 0xFF; PORTB = 0x00;
 
     /* Insert your solution below */
-	TimerSet(25);
+	TimerSet(10);
 	TimerOn();
     SM1_STATE = SM1_SMStart;
     SM2_STATE = SM2_SMStart;
