@@ -82,7 +82,7 @@ unsigned char times[75] = {
     15, 30, 30, 90, 30, 
     15, 15, 30, 15, 15, 
     15, 15, 60, 30, 30, 
-    45, 15, 30, 30, 30 };
+    45, 15, 30, 30, 90 };
 
 unsigned char playing = 0x00;
 unsigned char index = 0x00;
