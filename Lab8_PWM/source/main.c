@@ -10,6 +10,10 @@
  *  Demo Link: <>
  */
 #include <avr/io.h>
+#ifdef _SIMULATE_
+#include "simAVRHeader.h"
+#endif
+
 #define ds4 311.13
 #define e4 329.63
 #define fs4 369.99
@@ -18,9 +22,6 @@
 #define b4 493.88
 #define cs5 554.37
 #define d5 587.33
-#ifdef _SIMULATE_
-#include "simAVRHeader.h"
-#endif
 
 void set_PWM(double frequency) {
     static double current_frequency;
@@ -110,6 +111,7 @@ void TickFct_SM1() {
     
     switch (SM1_STATE) {
         case SM1_Playing:
+            playing = 0x01;
             break;
         default:
             set_PWM(0);
@@ -127,7 +129,8 @@ void TickFct_SM2() {
             SM2_STATE = SM2_Waiting;
             break;
         case SM2_Waiting:
-            if (SM1_STATE == SM1_Playing) {
+            if (playing) {
+                playing = 0x00;
                 SM2_STATE = SM2_Playing;
             }
             break;
