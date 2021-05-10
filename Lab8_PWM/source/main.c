@@ -128,7 +128,8 @@ int main(void) {
     DDRB = 0xFF; PORTB = 0x00;
 
     /* Insert your solution below */
-    SM_STATE = SM_SMStart;
+    SM1_STATE = SM1_SMStart;
+    SM2_STATE = SM2_SMStart;
     PWM_on();
     while (1) {
         TickFct_SM1();
