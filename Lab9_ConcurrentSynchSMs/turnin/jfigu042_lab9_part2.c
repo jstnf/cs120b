@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #9 Exercise #3
+ *	Assignment: Lab #9 Exercise #2
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -18,7 +18,6 @@
 enum SM1_STATES { SM1_SMStart, SM1_Light1, SM1_Light2, SM1_Light3 } SM1_STATE;
 enum SM2_STATES { SM2_SMStart, SM2_On, SM2_Off } SM2_STATE;
 enum SM3_STATES { SM3_SMStart, SM3_Combine } SM3_STATE;
-enum SM4_STATES { SM4_SMStart, SM4_PulseOn, SM4_PulseOff } SM4_STATE;
 
 unsigned int timer1 = 0;
 unsigned char threeLEDs = 0x00;
@@ -102,42 +101,6 @@ void TickFct_Blinking() {
     }
 }
 
-unsigned int timer4 = 0;
-unsigned char soundBit = 0x00;
-
-void TickFct_Sound() {
-    switch (SM4_STATE) {
-        case SM4_SMStart:
-            SM4_STATE = SM4_PulseOn;
-            break;
-        case SM4_PulseOn:
-            if (timer4 >= 2) {
-                timer4 = 0;
-                SM4_STATE = SM4_PulseOff;
-            }
-            break;
-        case SM4_PulseOff:
-            if (timer4 >= 2) {
-                timer4 = 0;
-                SM4_STATE = SM4_PulseOn;
-            }
-            break;
-    }
-    
-    switch (SM4_STATE) {
-        case SM4_PulseOn:
-            soundBit = 0x40;
-            timer4++;
-            break;
-        case SM4_PulseOff:
-            soundBit = 0x00;
-            timer4++;
-            break;
-        default:
-            break;
-    }
-}
-
 void TickFct_Combine() {
     switch (SM3_STATE) {
         case SM3_SMStart:
@@ -148,7 +111,7 @@ void TickFct_Combine() {
     
     switch (SM3_STATE) {
         case SM3_Combine:
-            PORTB = blinkingLED | threeLEDs | soundBit;
+            PORTB = blinkingLED | threeLEDs;
             break;
         default:
             break;
@@ -157,8 +120,7 @@ void TickFct_Combine() {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
-    DDRB = 0x4F; PORTB = 0x00;
-    DDRA = 0x00; PORTA = 0xFF;
+    DDRB = 0x0F; PORTB = 0x00;
     
     TimerSet(1);
     TimerOn();
@@ -166,13 +128,11 @@ int main(void) {
     SM1_STATE = SM1_SMStart;
     SM2_STATE = SM2_SMStart;
     SM3_STATE = SM3_SMStart;
-    SM4_STATE = SM4_SMStart;
 
     /* Insert your solution below */
     while (1) {
         TickFct_ThreeLEDs();
         TickFct_Blinking();
-        TickFct_Sound();
         TickFct_Combine();
         
         while (!TimerFlag) { }
