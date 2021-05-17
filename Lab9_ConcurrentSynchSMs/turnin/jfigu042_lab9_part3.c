@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #9 Exercise #4
+ *	Assignment: Lab #9 Exercise #3
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -19,8 +19,6 @@ enum SM1_STATES { SM1_SMStart, SM1_Light1, SM1_Light2, SM1_Light3 } SM1_STATE;
 enum SM2_STATES { SM2_SMStart, SM2_On, SM2_Off } SM2_STATE;
 enum SM3_STATES { SM3_SMStart, SM3_Combine } SM3_STATE;
 enum SM4_STATES { SM4_SMStart, SM4_PulseOn, SM4_PulseOff } SM4_STATE;
-enum SM5_STATES { SM5_SMStart, SM5_Wait, SM5_IncrementRise, SM5_IncrementFall } SM5_STATE;
-enum SM6_STATES { SM6_SMStart, SM6_Wait, SM6_DecrementRise, SM6_DecrementFall } SM6_STATE;
 
 unsigned int timer1 = 0;
 unsigned char threeLEDs = 0x00;
@@ -105,7 +103,6 @@ void TickFct_Blinking() {
 }
 
 unsigned int timer4 = 0;
-unsigned int freq = 2;
 unsigned char soundBit = 0x00;
 
 void TickFct_Sound() {
@@ -114,13 +111,13 @@ void TickFct_Sound() {
             SM4_STATE = SM4_PulseOn;
             break;
         case SM4_PulseOn:
-            if (timer4 >= freq) {
+            if (timer4 >= 2) {
                 timer4 = 0;
                 SM4_STATE = SM4_PulseOff;
             }
             break;
         case SM4_PulseOff:
-            if (timer4 >= freq) {
+            if (timer4 >= 2) {
                 timer4 = 0;
                 SM4_STATE = SM4_PulseOn;
             }
@@ -139,66 +136,6 @@ void TickFct_Sound() {
         case SM4_PulseOff:
             soundBit = 0x00;
             timer4++;
-            break;
-        default:
-            break;
-    }
-}
-
-void TickFct_Incrementer() {
-    switch (SM5_STATE) {
-        case SM5_SMStart:
-            SM5_STATE = SM5_Wait;
-            break;
-        case SM5_Wait:
-            if (~PINA & 0x01) {
-                SM5_STATE = SM5_IncrementRise;
-            }
-            break;
-        case SM5_IncrementRise:
-            SM5_STATE = SM5_IncrementFall;
-            break;
-        case SM5_IncrementFall:
-            if (!(~PINA & 0x01)) {
-                SM5_STATE = SM5_Wait;
-            }
-            break;
-    }
-    
-    switch (SM5_STATE) {
-        case SM5_IncrementRise:
-            freq++;
-            break;
-        default:
-            break;
-    }
-}
-
-void TickFct_Decrementer() {
-    switch (SM6_STATE) {
-        case SM6_SMStart:
-            SM6_STATE = SM6_Wait;
-            break;
-        case SM5_Wait:
-            if (~PINA & 0x02) {
-                SM6_STATE = SM6_DecrementRise;
-            }
-            break;
-        case SM6_DecrementRise:
-            SM6_STATE = SM6_DecrementFall;
-            break;
-        case SM6_DecrementFall:
-            if (!(~PINA & 0x02)) {
-                SM6_STATE = SM6_Wait;
-            }
-            break;
-    }
-    
-    switch (SM6_STATE) {
-        case SM6_DecrementRise:
-            if (freq != 1) {
-                freq--;
-            }
             break;
         default:
             break;
@@ -234,16 +171,12 @@ int main(void) {
     SM2_STATE = SM2_SMStart;
     SM3_STATE = SM3_SMStart;
     SM4_STATE = SM4_SMStart;
-    SM5_STATE = SM5_SMStart;
-    SM6_STATE = SM6_SMStart;
 
     /* Insert your solution below */
     while (1) {
         TickFct_ThreeLEDs();
         TickFct_Blinking();
         TickFct_Sound();
-        TickFct_Incrementer();
-        TickFct_Decrementer();
         TickFct_Combine();
         
         while (!TimerFlag) { }
