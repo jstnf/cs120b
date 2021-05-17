@@ -50,15 +50,15 @@ void TickFct_ThreeLEDs() {
     switch (SM1_STATE) {
         case SM1_Light1:
             threeLEDs = 0x01;
-            timer++;
+            timer1++;
             break;
         case SM1_Light2:
             threeLEDs = 0x02;
-            timer++;
+            timer1++;
             break;
         case SM1_Light3:
             threeLEDs = 0x04;
-            timer++;
+            timer1++;
             break;
         default:
             break;
@@ -75,13 +75,13 @@ void TickFct_Blinking() {
             break;
         case SM2_On:
             if (timer2 >= 1000) {
-                timer = 0;
+                timer2 = 0;
                 SM2_STATE = SM2_Off;
             }
             break;
         case SM2_Off:
             if (timer2 >= 1000) {
-                timer = 0;
+                timer2 = 0;
                 SM2_STATE = SM2_On;
             }
             break;
@@ -90,11 +90,13 @@ void TickFct_Blinking() {
     switch (SM2_STATE) {
         case SM2_On:
             blinkingLED = 0x08;
-            timer++;
+            timer2++;
             break;
         case SM2_Off:
             blinkingLED = 0x01;
-            timer++;
+            timer2++;
+            break;
+        default:
             break;
     }
 }
