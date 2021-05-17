@@ -93,7 +93,7 @@ void TickFct_Blinking() {
             timer2++;
             break;
         case SM2_Off:
-            blinkingLED = 0x01;
+            blinkingLED = 0x00;
             timer2++;
             break;
         default:
