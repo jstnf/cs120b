@@ -167,7 +167,9 @@ void TickFct_Incrementer() {
     
     switch (SM5_STATE) {
         case SM5_IncrementRise:
-            freq++;
+            if (freq != 1) {
+                freq--;
+            }
             break;
         default:
             break;
@@ -196,9 +198,7 @@ void TickFct_Decrementer() {
     
     switch (SM6_STATE) {
         case SM6_DecrementRise:
-            if (freq != 1) {
-                freq--;
-            }
+            freq++;
             break;
         default:
             break;
