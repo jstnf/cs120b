@@ -111,13 +111,13 @@ void TickFct_Sound() {
             SM4_STATE = SM4_PulseOn;
             break;
         case SM4_PulseOn:
-            if (timer4 >= 1) {
+            if (timer4 >= 2) {
                 timer4 = 0;
                 SM4_STATE = SM4_PulseOff;
             }
             break;
         case SM4_PulseOff:
-            if (timer4 >= 1) {
+            if (timer4 >= 2) {
                 timer4 = 0;
                 SM4_STATE = SM4_PulseOn;
             }
@@ -126,7 +126,7 @@ void TickFct_Sound() {
     
     switch (SM4_STATE) {
         case SM4_PulseOn:
-            if (~PINA & 0x40) {
+            if (~PINA & 0x04) {
                 soundBit = 0x40;
             } else {
                 soundBit = 0x00;
