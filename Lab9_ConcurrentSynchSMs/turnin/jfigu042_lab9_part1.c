@@ -28,19 +28,19 @@ void TickFct_ThreeLEDs() {
             SM1_STATE = SM1_Light1;
             break;
         case SM1_Light1:
-            if (timer1 >= 300) {
+            if (timer1 >= 1000) {
                 timer1 = 0;
                 SM1_STATE = SM1_Light2;
             }
             break;
         case SM1_Light2:
-            if (timer1 >= 300) {
+            if (timer1 >= 1000) {
                 timer1 = 0;
                 SM1_STATE = SM1_Light3;
             }
             break;
         case SM1_Light3:
-            if (timer1 >= 300) {
+            if (timer1 >= 1000) {
                 timer1 = 0;
                 SM1_STATE = SM1_Light1;
             }
