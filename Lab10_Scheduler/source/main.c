@@ -231,7 +231,7 @@ enum SM4_STATES { SM4_SMStart, SM4_Waiting, SM4_Playing, SM4_Transition, SM4_Don
 int TickFct_Doorbell(int state) {
     switch (state) {
         case SM3_WaitFall:
-            if (~PINA & 0x80) {
+            if ((~PINA & 0x80) == 0x80) {
                 playing = 0x01;
                 state = SM3_Playing;
             }
