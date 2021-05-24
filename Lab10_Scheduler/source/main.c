@@ -158,7 +158,7 @@ int main(void) {
             case 'B':
                 PORTB = 0x08;
                 break;
-            case '7'
+            case '7':
                 PORTB = 0x09;
                 break;
             case '8':
