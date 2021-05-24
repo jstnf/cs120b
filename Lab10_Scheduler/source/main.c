@@ -174,6 +174,8 @@ int TickFct_Locking(int state) {
             }
             break;
     }
+    
+    return state;
 }
 
 // SM to create outputs (req. since lab 9)
