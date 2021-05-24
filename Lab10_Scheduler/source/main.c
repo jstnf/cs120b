@@ -61,7 +61,6 @@ void GetKeypadKey() {
 enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
 unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
-    x = GetKeypadKey();
     
     switch (state) {
         case SM1_Wait:
