@@ -52,18 +52,18 @@ unsigned char GetKeypadKey() {
     return('\0');
 }
 
-enum SM_STATES { SM_SMStart, SM_Wait, SM_Press };
-
+enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
 unsigned char x;
+unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
     x = GetKeypadKey();
     
     switch (state) {
-        case SM_Wait:
-            if (x != '\0') state = SM_Press;
+        case SM1_Wait:
+            if (x != '\0') state = SM1_Press;
             break;
-        case SM_Press:
-            if (x == '\0') state = SM_Wait;
+        case SM1_Press:
+            if (x == '\0') state = SM1_Wait;
             break;
         default:
             state = SM_Wait;
@@ -71,11 +71,31 @@ int TickFct_KeyPad(int state) {
     }
     
     switch (state) {
-        case SM_Press:
-            PORTB = 0xFF;
+        case SM1_Press:
+            feedback = 0x80;
             break;
         default:
-            PORTB = 0x00;
+            feedback = 0x00;
+            break;
+    }
+    
+    return state;
+}
+
+// SM to create outputs (req. since lab 9)
+enum SM0_STATES { SM0_SMStart, SM0_Combine };
+int TickFct_Combine(int state) {
+    switch (state) {
+        default:
+            state = SM0_Combine;
+            break;
+    }
+    
+    switch (state) {
+        case SM0_Combine:
+            PORTB = feedback;
+            break;
+        default:
             break;
     }
     
@@ -88,16 +108,21 @@ int main(void) {
     DDRC = 0xF0; PORTC = 0x0F;
     
     static task task1;
-    task *tasks[] = { &task1 };
+    task *tasks[] = { &task1, &task0 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = -1;
     task1.state = start;
-    task1.period = 200;
+    task1.period = 1;
     task1.elapsedTime = task1.period;
     task1.TickFct = &TickFct_KeyPad;
     
-    TimerSet(100);
+    task0.state = start;
+    task0.period = 1;
+    task0.elapsedTime = task0.period;
+    task0.TickFct = &TickFct_Combine;
+    
+    TimerSet(1);
     TimerOn();
 
     /* Insert your solution below */
@@ -108,7 +133,7 @@ int main(void) {
                 tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
                 tasks[i]->elapsedTime = 0;
             }
-            tasks[i]->elapsedTime += 100;
+            tasks[i]->elapsedTime += 1;
         }
         
         while (!TimerFlag);
