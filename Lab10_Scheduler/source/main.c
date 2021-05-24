@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #10 Exercise #1
+ *	Assignment: Lab #10 Exercise #2
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -20,59 +20,120 @@ typedef struct _task {
     int (*TickFct)(int);
 } task;
 
-unsigned char GetKeypadKey() {
+unsigned char x = '\0';
+unsigned char validateOneButton(char input) {
+    if (x == '\0') x = input;
+    else x = '\n'; // Newline character means two buttons are being pressed at once
+}
+
+unsigned void GetKeypadKey() {
+    x = '\0';
+    
     PORTC = 0xEF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('1');
-    if ((PINC & 0x02) == 0x00) return('4');
-    if ((PINC & 0x04) == 0x00) return('7');
-    if ((PINC & 0x08) == 0x00) return('*');
+    if ((PINC & 0x01) == 0x00) validateOneButton('1');
+    if ((PINC & 0x02) == 0x00) validateOneButton('4');
+    if ((PINC & 0x04) == 0x00) validateOneButton('7');
+    if ((PINC & 0x08) == 0x00) validateOneButton('*');
     
     PORTC = 0xDF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('2');
-    if ((PINC & 0x02) == 0x00) return('5');
-    if ((PINC & 0x04) == 0x00) return('8');
-    if ((PINC & 0x08) == 0x00) return('0');
+    if ((PINC & 0x01) == 0x00) validateOneButton('2');
+    if ((PINC & 0x02) == 0x00) validateOneButton('5');
+    if ((PINC & 0x04) == 0x00) validateOneButton('8');
+    if ((PINC & 0x08) == 0x00) validateOneButton('0');
     
     PORTC = 0xBF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('3');
-    if ((PINC & 0x02) == 0x00) return('6');
-    if ((PINC & 0x04) == 0x00) return('9');
-    if ((PINC & 0x08) == 0x00) return('#');
+    if ((PINC & 0x01) == 0x00) validateOneButton('3');
+    if ((PINC & 0x02) == 0x00) validateOneButton('6');
+    if ((PINC & 0x04) == 0x00) validateOneButton('9');
+    if ((PINC & 0x08) == 0x00) validateOneButton('#');
     
     PORTC = 0x7F;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('A');
-    if ((PINC & 0x02) == 0x00) return('B');
-    if ((PINC & 0x04) == 0x00) return('C');
-    if ((PINC & 0x08) == 0x00) return('D');
-    
-    return('\0');
+    if ((PINC & 0x01) == 0x00) validateOneButton('A');
+    if ((PINC & 0x02) == 0x00) validateOneButton('B');
+    if ((PINC & 0x04) == 0x00) validateOneButton('C');
+    if ((PINC & 0x08) == 0x00) validateOneButton('D');
 }
 
-enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
-unsigned char x;
+enum SM1_STATES { SM1_SMStart, SM1_Wrong, SM1_Wait, SM1_Right, SM1_R1, SM1_F1, SM1_R2, SM1_F2, SM1_R3, SM1_F3, SM1_R4, SM1_F4, SM1_R5, SM1_F5 };
 unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
-    x = GetKeypadKey();
+    GetKeypadKey();
     
     switch (state) {
-        case SM1_Wait:
-            if (x != '\0') state = SM1_Press;
+        case SM1_Wrong:
+            if (x == '#') state = SM1_Wait;
+            else state = SM1_Wrong;
             break;
-        case SM1_Press:
-            if (x == '\0') state = SM1_Wait;
+        case SM1_Wait:
+            if (x == '\0') state = SM1_R1;
+            else if (x == '#') state = SM1_Wait;
+            else state = SM1_Wrong;
+        case SM1_Right:
+            if (x == '\0') state = SM1_Right;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R1:
+            if (x == '\0') state = SM1_R1;
+            else if (x == '1') state = SM1_F1;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F1:
+            if (x == '1') state = SM1_F1;
+            else if (x == '\0') state = SM1_R2;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R2:
+            if (x == '\0') state = SM1_R2;
+            else if (x == '2') state = SM1_F2;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F2:
+            if (x == '2') state = SM1_F2;
+            else if (x == '\0') state = SM1_R3;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R3:
+            if (x == '\0') state = SM1_R3;
+            else if (x == '3') state = SM1_F3;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F3:
+            if (x == '3') state = SM1_F3;
+            else if (x == '\0') state = SM1_R4;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R4:
+            if (x == '\0') state = SM1_R4;
+            else if (x == '4') state = SM1_F4;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F4:
+            if (x == '4') state = SM1_F4;
+            else if (x == '\0') state = SM1_R5;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R5:
+            if (x == '\0') state = SM1_R5;
+            else if (x == '5') state = SM1_F5;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F5:
+            if (x == '5') state = SM1_F5;
+            else if (x == '\0') state = SM1_Right;
+            else state = SM1_Wrong;
             break;
         default:
-            state = SM1_Wait;
+            state = SM1_Wrong;
             break;
     }
     
     switch (state) {
-        case SM1_Press:
-            feedback = 0x80;
+        case SM1_Right:
+            feedback = 0x01;
             break;
         default:
             feedback = 0x00;
