@@ -72,6 +72,7 @@ int TickFct_KeyPad(int state) {
             if (x == '\0') state = SM1_R1;
             else if (x == '#') state = SM1_Wait;
             else state = SM1_Wrong;
+            break;
         case SM1_Right:
             if (x == '\0') state = SM1_Right;
             else state = SM1_Wrong;
