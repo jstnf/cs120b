@@ -12,6 +12,13 @@
 #include "simAVRHeader.h"
 #endif
 
+typedef struct _task {
+    signed char state;
+    unsigned long int period;
+    unsigned long int elapsedTime;
+    int (*TickFct)(int);
+} task;
+
 unsigned char GetKeypadKey() {
     PORTC = 0xEF;
     asm("nop");
@@ -46,21 +53,28 @@ unsigned char GetKeypadKey() {
 
 enum SM_STATES { SM_SMStart, SM_Wait, SM_Press } SM_STATE;
 
+unsigned char x;
 void TickFct_KeyPad() {
+    x = GetKeypadKey();
+    
     switch (SM_STATE) {
         case SM_SMStart:
             SM_STATE = SM_Wait;
             break;
         case SM_Wait:
+            if (x != '\0') SM_STATE = SM_Press;
             break;
         case SM_Press:
+            if (x == '\0') SM_STATE = SM_Wait;
             break;
     }
     
     switch (SM_STATE) {
         case SM_Press:
+            PORTB = 0xFF;
             break;
         default:
+            PORTB = 0x00;
             break;
     }
 }
@@ -73,15 +87,7 @@ int main(void) {
     /* Insert your solution below */
     unsigned char x;
     while (1) {
-        x = GetKeypadKey();
-        switch (x) {
-            case '\0':
-                PORTB = 0x00;
-                break;
-            default:
-                PORTB = 0xFF;
-                break;
-        }
+        TickFct_KeyPad();
     }
     return 1;
 }
