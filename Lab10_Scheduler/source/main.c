@@ -23,39 +23,39 @@ typedef struct _task {
 unsigned char x = '\0';
 void validate(unsigned char input) {
     if (x == '\0') x = input;
-    else x = '\n';
+    else x = '-';
 }
 
-unsigned char GetKeypadKey() {
+void GetKeypadKey() {
+    x = '\0';
+    
     PORTC = 0xEF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('1');
-    if ((PINC & 0x02) == 0x00) return('4');
-    if ((PINC & 0x04) == 0x00) return('7');
-    if ((PINC & 0x08) == 0x00) return('*');
+    if ((PINC & 0x01) == 0x00) validate('1');
+    if ((PINC & 0x02) == 0x00) validate('4');
+    if ((PINC & 0x04) == 0x00) validate('7');
+    if ((PINC & 0x08) == 0x00) validate('*');
     
     PORTC = 0xDF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('2');
-    if ((PINC & 0x02) == 0x00) return('5');
-    if ((PINC & 0x04) == 0x00) return('8');
-    if ((PINC & 0x08) == 0x00) return('0');
+    if ((PINC & 0x01) == 0x00) validate('2');
+    if ((PINC & 0x02) == 0x00) validate('5');
+    if ((PINC & 0x04) == 0x00) validate('8');
+    if ((PINC & 0x08) == 0x00) validate('0');
     
     PORTC = 0xBF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('3');
-    if ((PINC & 0x02) == 0x00) return('6');
-    if ((PINC & 0x04) == 0x00) return('9');
-    if ((PINC & 0x08) == 0x00) return('#');
+    if ((PINC & 0x01) == 0x00) validate('3');
+    if ((PINC & 0x02) == 0x00) validate('6');
+    if ((PINC & 0x04) == 0x00) validate('9');
+    if ((PINC & 0x08) == 0x00) validate('#');
     
     PORTC = 0x7F;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('A');
-    if ((PINC & 0x02) == 0x00) return('B');
-    if ((PINC & 0x04) == 0x00) return('C');
-    if ((PINC & 0x08) == 0x00) return('D');
-    
-    return('\0');
+    if ((PINC & 0x01) == 0x00) validate('A');
+    if ((PINC & 0x02) == 0x00) validate('B');
+    if ((PINC & 0x04) == 0x00) validate('C');
+    if ((PINC & 0x08) == 0x00) validate('D');
 }
 
 enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
