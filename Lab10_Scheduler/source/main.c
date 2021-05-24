@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #10 Exercise #2
+ *	Assignment: Lab #10 Exercise #1
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -19,12 +19,6 @@ typedef struct _task {
     unsigned long int elapsedTime;
     int (*TickFct)(int);
 } task;
-
-unsigned char x = '\0';
-void validateOneButton(char input) {
-    if (x == '\0') x = input;
-    else x = '\n'; // Newline character means two buttons are being pressed at once
-}
 
 unsigned char GetKeypadKey() {
     PORTC = 0xEF;
@@ -55,108 +49,30 @@ unsigned char GetKeypadKey() {
     if ((PINC & 0x04) == 0x00) return('C');
     if ((PINC & 0x08) == 0x00) return('D');
     
-    return ('\0');
+    return('\0');
 }
 
-enum SM1_STATES { SM1_SMStart, SM1_Wrong, SM1_Wait, SM1_Right, SM1_R1, SM1_F1, SM1_R2, SM1_F2, SM1_R3, SM1_F3, SM1_R4, SM1_F4, SM1_R5, SM1_F5 };
+enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
+unsigned char x;
 unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
     x = GetKeypadKey();
     
     switch (state) {
-        case SM1_Wrong:
-            if (x == '#') state = SM1_Wait;
-            else state = SM1_Wrong;
-            break;
         case SM1_Wait:
-            if (x == '\0') state = SM1_R1;
-            else if (x == '#') state = SM1_Wait;
-            else state = SM1_Wrong;
-        case SM1_Right:
-            if (x == '\0') state = SM1_Right;
-            else state = SM1_Wrong;
+            if (x != '\0') state = SM1_Press;
             break;
-        case SM1_R1:
-            if (x == '\0') state = SM1_R1;
-            else if (x == '1') state = SM1_F1;
-            else state = SM1_Wrong;
-            break;
-        case SM1_F1:
-            if (x == '1') state = SM1_F1;
-            else if (x == '\0') state = SM1_R2;
-            else state = SM1_Wrong;
-            break;
-        case SM1_R2:
-            if (x == '\0') state = SM1_R2;
-            else if (x == '2') state = SM1_F2;
-            else state = SM1_Wrong;
-            break;
-        case SM1_F2:
-            if (x == '2') state = SM1_F2;
-            else if (x == '\0') state = SM1_R3;
-            else state = SM1_Wrong;
-            break;
-        case SM1_R3:
-            if (x == '\0') state = SM1_R3;
-            else if (x == '3') state = SM1_F3;
-            else state = SM1_Wrong;
-            break;
-        case SM1_F3:
-            if (x == '3') state = SM1_F3;
-            else if (x == '\0') state = SM1_R4;
-            else state = SM1_Wrong;
-            break;
-        case SM1_R4:
-            if (x == '\0') state = SM1_R4;
-            else if (x == '4') state = SM1_F4;
-            else state = SM1_Wrong;
-            break;
-        case SM1_F4:
-            if (x == '4') state = SM1_F4;
-            else if (x == '\0') state = SM1_R5;
-            else state = SM1_Wrong;
-            break;
-        case SM1_R5:
-            if (x == '\0') state = SM1_R5;
-            else if (x == '5') state = SM1_F5;
-            else state = SM1_Wrong;
-            break;
-        case SM1_F5:
-            if (x == '5') state = SM1_F5;
-            else if (x == '\0') state = SM1_Right;
-            else state = SM1_Wrong;
+        case SM1_Press:
+            if (x == '\0') state = SM1_Wait;
             break;
         default:
-            state = SM1_Wrong;
+            state = SM1_Wait;
             break;
     }
     
     switch (state) {
-        case SM1_Right:
-            feedback = 0x01;
-            break;
-        case SM1_Wrong:
-            feedback = 0x02;
-            break;
-        case SM1_R1:
-        case SM1_F1:
-            feedback = 0x04;
-            break;
-        case SM1_R2:
-        case SM1_F2:
-            feedback = 0x08;
-            break;
-        case SM1_R3:
-        case SM1_F3:
-            feedback = 0x10;
-            break;
-        case SM1_R4:
-        case SM1_F4:
-            feedback = 0x20;
-            break;
-        case SM1_R5:
-        case SM1_F5:
-            feedback = 0x40;
+        case SM1_Press:
+            feedback = 0x80;
             break;
         default:
             feedback = 0x00;
@@ -212,16 +128,64 @@ int main(void) {
     /* Insert your solution below */
     unsigned short i;
     while (1) {
-        for (i = 0; i < numTasks; i++) {
-            if (tasks[i]->elapsedTime == tasks[i]->period) {
-                tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
-                tasks[i]->elapsedTime = 0;
-            }
-            tasks[i]->elapsedTime += 1;
-        }
+        x = GetKeypadKey();
         
-        while (!TimerFlag);
-        TimerFlag = 0;
+        switch (x) {
+            case '\0':
+                PORTB = 0x00;
+                break;
+            case '1':
+                PORTB = 0x01;
+                break;
+            case '2':
+                PORTB = 0x02;
+                break;
+            case '3':
+                PORTB = 0x03;
+                break;
+            case 'A':
+                PORTB = 0x04;
+                break;
+            case '4':
+                PORTB = 0x05;
+                break;
+            case '5':
+                PORTB = 0x06;
+                break;
+            case '6':
+                PORTB = 0x07;
+                break;
+            case 'B':
+                PORTB = 0x08;
+                break;
+            case '7'
+                PORTB = 0x09;
+                break;
+            case '8':
+                PORTB = 0x0A;
+                break;
+            case '9':
+                PORTB = 0x0B;
+                break;
+            case 'C':
+                PORTB = 0x0C;
+                break;
+            case '*':
+                PORTB = 0x0D;
+                break;
+            case '0':
+                PORTB = 0x0E;
+                break;
+            case '#':
+                PORTB = 0x0F;
+                break;
+            case 'D':
+                PORTB = 0x10;
+                break;
+            default:
+                PORTB = 0xF0;
+                break;
+        }
     }
     return 1;
 }
