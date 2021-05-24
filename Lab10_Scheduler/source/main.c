@@ -326,11 +326,12 @@ int TickFct_Combine(int state) {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
+    DDRA = 0x00; PORTA = 0xFF;
     DDRB = 0x7F; PORTB = 0x80;
     DDRC = 0xF0; PORTC = 0x0F;
     
-    static task task1, task2, task0;
-    task *tasks[] = { &task1, &task2, &task0 };
+    static task task1, task2, task3, task4, task0;
+    task *tasks[] = { &task1, &task2, &task3, &task4, &task0 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = -1;
@@ -343,6 +344,16 @@ int main(void) {
     task2.period = 1;
     task2.elapsedTime = task2.period;
     task2.TickFct = &TickFct_Locking;
+    
+    task3.state = start;
+    task3.period = 10;
+    task3.elapsedTime = task3.period;
+    task3.TickFct = &TickFct_Doorbell;
+    
+    task4.state = start;
+    task4.period = 10;
+    task4.elapsedTime = task4.period;
+    task4.TickFct = &TickFct_DoorbellSounds;
     
     task0.state = start;
     task0.period = 1;
