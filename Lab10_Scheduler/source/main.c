@@ -362,6 +362,7 @@ int main(void) {
     
     TimerSet(1);
     TimerOn();
+    PWM_on();
 
     /* Insert your solution below */
     unsigned short i;
