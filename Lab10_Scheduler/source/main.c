@@ -59,14 +59,14 @@ void TickFct_KeyPad() {
     x = GetKeypadKey();
     
     switch (SM_STATE) {
-        case SM_SMStart:
-            SM_STATE = SM_Wait;
-            break;
         case SM_Wait:
             if (x != '\0') SM_STATE = SM_Press;
             break;
         case SM_Press:
             if (x == '\0') SM_STATE = SM_Wait;
+            break;
+        default:
+            SM_STATE = SM_Wait;
             break;
     }
     
