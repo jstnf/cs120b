@@ -21,7 +21,7 @@ typedef struct _task {
 } task;
 
 unsigned char x = '\0';
-unsigned char validateOneButton(char input) {
+unsigned void validateOneButton(char input) {
     if (x == '\0') x = input;
     else x = '\n'; // Newline character means two buttons are being pressed at once
 }
