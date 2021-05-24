@@ -198,7 +198,7 @@ int TickFct_Combine(int state) {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
-    DDRB = 0x7F; PORTB = 0x00;
+    DDRB = 0x7F; PORTB = 0x80;
     DDRC = 0xF0; PORTC = 0x0F;
     
     static task task1, task0;
