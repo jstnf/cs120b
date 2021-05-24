@@ -219,7 +219,7 @@ double notes[9] = {
     e5, ds5, e5, ds5, e5, b4, d5, c5, a4 };
     
 unsigned char times[9] = { 
-    300, 300, 300, 300, 300, 300, 300, 300, 300 };
+    30, 30, 30, 30, 30, 30, 30, 30, 30 };
 
 unsigned char playing = 0x00;
 unsigned char index = 0x00;
@@ -350,7 +350,7 @@ int main(void) {
     task3.TickFct = &TickFct_Doorbell;
     
     task4.state = start;
-    task4.period = 1;
+    task4.period = 10;
     task4.elapsedTime = task4.period;
     task4.TickFct = &TickFct_DoorbellSounds;
     
