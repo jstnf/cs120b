@@ -6,6 +6,8 @@
  *
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
+ *
+ *  Demo Link: <>
  */
 #include <avr/io.h>
 #include "timer.h"
@@ -21,47 +23,48 @@ typedef struct _task {
 } task;
 
 unsigned char x = '\0';
-void validateOneButton(char input) {
+void validateOneButton(unsigned char input) {
     if (x == '\0') x = input;
-    else x = '\n'; // Newline character means two buttons are being pressed at once
+    else x = '-'; // - character means two buttons are being pressed at once
 }
 
-unsigned char GetKeypadKey() {
+void GetKeypadKey() {
+    x = '\0';
+    
     PORTC = 0xEF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('1');
-    if ((PINC & 0x02) == 0x00) return('4');
-    if ((PINC & 0x04) == 0x00) return('7');
-    if ((PINC & 0x08) == 0x00) return('*');
+    if ((PINC & 0x01) == 0x00) validateOneButton('1');
+    if ((PINC & 0x02) == 0x00) validateOneButton('4');
+    if ((PINC & 0x04) == 0x00) validateOneButton('7');
+    if ((PINC & 0x08) == 0x00) validateOneButton('*');
     
     PORTC = 0xDF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('2');
-    if ((PINC & 0x02) == 0x00) return('5');
-    if ((PINC & 0x04) == 0x00) return('8');
-    if ((PINC & 0x08) == 0x00) return('0');
+    if ((PINC & 0x01) == 0x00) validateOneButton('2');
+    if ((PINC & 0x02) == 0x00) validateOneButton('5');
+    if ((PINC & 0x04) == 0x00) validateOneButton('8');
+    if ((PINC & 0x08) == 0x00) validateOneButton('0');
     
     PORTC = 0xBF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('3');
-    if ((PINC & 0x02) == 0x00) return('6');
-    if ((PINC & 0x04) == 0x00) return('9');
-    if ((PINC & 0x08) == 0x00) return('#');
+    if ((PINC & 0x01) == 0x00) validateOneButton('3');
+    if ((PINC & 0x02) == 0x00) validateOneButton('6');
+    if ((PINC & 0x04) == 0x00) validateOneButton('9');
+    if ((PINC & 0x08) == 0x00) validateOneButton('#');
     
     PORTC = 0x7F;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) return('A');
-    if ((PINC & 0x02) == 0x00) return('B');
-    if ((PINC & 0x04) == 0x00) return('C');
-    if ((PINC & 0x08) == 0x00) return('D');
-    
-    return ('\0');
+    if ((PINC & 0x01) == 0x00) validateOneButton('A');
+    if ((PINC & 0x02) == 0x00) validateOneButton('B');
+    if ((PINC & 0x04) == 0x00) validateOneButton('C');
+    if ((PINC & 0x08) == 0x00) validateOneButton('D');
 }
 
 enum SM1_STATES { SM1_SMStart, SM1_Wrong, SM1_Wait, SM1_Right, SM1_R1, SM1_F1, SM1_R2, SM1_F2, SM1_R3, SM1_F3, SM1_R4, SM1_F4, SM1_R5, SM1_F5 };
 unsigned char feedback = 0x00;
+unsigned short override = 0x00;
 int TickFct_KeyPad(int state) {
-    x = GetKeypadKey();
+    GetKeypadKey();
     
     switch (state) {
         case SM1_Wrong:
@@ -72,6 +75,7 @@ int TickFct_KeyPad(int state) {
             if (x == '\0') state = SM1_R1;
             else if (x == '#') state = SM1_Wait;
             else state = SM1_Wrong;
+            break;
         case SM1_Right:
             if (x == '\0') state = SM1_Right;
             else state = SM1_Wrong;
@@ -123,7 +127,11 @@ int TickFct_KeyPad(int state) {
             break;
         case SM1_F5:
             if (x == '5') state = SM1_F5;
-            else if (x == '\0') state = SM1_Right;
+            else if (x == '\0') {
+                state = SM1_Right;
+                override = 0x01; // Getting the combination correct overrides the locking system
+                // It will relock when PB7 is pressed
+            }
             else state = SM1_Wrong;
             break;
         default:
@@ -135,31 +143,37 @@ int TickFct_KeyPad(int state) {
         case SM1_Right:
             feedback = 0x01;
             break;
-        case SM1_Wrong:
-            feedback = 0x02;
+    }
+    
+    return state;
+}
+
+enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_Pressed };
+unsigned char lockingFeedback = 0x01;
+int TickFct_Locking(int state) {
+    switch (state) {
+        case SM2_Wait:
+            if ((PINB & 0x80) == 0x00) state = SM2_Pressed;
             break;
-        case SM1_R1:
-        case SM1_F1:
-            feedback = 0x04;
-            break;
-        case SM1_R2:
-        case SM1_F2:
-            feedback = 0x08;
-            break;
-        case SM1_R3:
-        case SM1_F3:
-            feedback = 0x10;
-            break;
-        case SM1_R4:
-        case SM1_F4:
-            feedback = 0x20;
-            break;
-        case SM1_R5:
-        case SM1_F5:
-            feedback = 0x40;
+        case SM2_Pressed:
+            if ((PINB & 0x80) == 0x80) state = SM2_Wait; 
             break;
         default:
-            feedback = 0x00;
+            state = SM2_Wait;
+            break;
+    }
+    
+    switch (state) {
+        case SM2_Pressed:
+            if (override) {
+                override = 0x00;
+                lockingFeedback = 0x00;
+            }
+            break;
+        default:
+            if (override) {
+                lockingFeedback = 0x01;
+            }
             break;
     }
     
@@ -177,7 +191,7 @@ int TickFct_Combine(int state) {
     
     switch (state) {
         case SM0_Combine:
-            PORTB = feedback;
+            PORTB = (PINB & 0x80) | (feedback & lockingFeedback); // Do not overwrite PB7
             break;
         default:
             break;
@@ -188,11 +202,11 @@ int TickFct_Combine(int state) {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
-    DDRB = 0xFF; PORTB = 0x00;
+    DDRB = 0x7F; PORTB = 0x80;
     DDRC = 0xF0; PORTC = 0x0F;
     
-    static task task1, task0;
-    task *tasks[] = { &task1, &task0 };
+    static task task1, task2, task0;
+    task *tasks[] = { &task1, &task2, &task0 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = -1;
@@ -200,6 +214,11 @@ int main(void) {
     task1.period = 1;
     task1.elapsedTime = task1.period;
     task1.TickFct = &TickFct_KeyPad;
+    
+    task2.state = start;
+    task2.period = 1;
+    task2.elapsedTime = task2.period;
+    task2.TickFct = &TickFct_Locking;
     
     task0.state = start;
     task0.period = 1;

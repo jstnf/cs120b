@@ -1,17 +1,52 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #10 Exercise #2
+ *	Assignment: Lab #10 Exercise #3
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
+ *
+ *  Demo Link: <>
  */
 #include <avr/io.h>
 #include "timer.h"
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
+
+#define a4 440
+#define b4 493.9
+#define c5 523.3
+#define d5 587.3
+#define ds5 622.3
+#define e5 659.3
+
+void set_PWM(double frequency) {
+    static double current_frequency;
+    if (frequency != current_frequency) {
+        if (!frequency) { TCCR3B &= 0x08; }
+        else { TCCR3B |= 0x03; }
+        
+        if (frequency < 0.954) { OCR3A = 0xFFFF; }
+        else if (frequency > 31250) { OCR3A = 0x0000; }
+        else { OCR3A = (short) (8000000 / (128 * frequency)) - 1; }
+        
+        TCNT3 = 0;
+        current_frequency = frequency;
+    }
+}
+
+void PWM_on() {
+    TCCR3A = (1 << COM3A0);
+    TCCR3B = (1 << WGM32) | (1 << CS31) | (1 << CS30);
+    set_PWM(0);
+}
+
+void PWM_off() {
+    TCCR3A = 0x00;
+    TCCR3B = 0x00;
+}
 
 typedef struct _task {
     signed char state;
@@ -172,6 +207,97 @@ int TickFct_Locking(int state) {
             if (override) {
                 lockingFeedback = 0x01;
             }
+            break;
+    }
+    
+    return state;
+}
+
+// DOORBELL
+
+double notes[8] = { 
+    e5, ds5, e5, ds5, e5, b4, d5, c5, a4 };
+    
+unsigned char times[8] = { 
+    30, 30, 30, 30, 30, 30, 30, 30 };
+
+unsigned char playing = 0x00;
+unsigned char index = 0x00;
+unsigned char length = 8;
+    
+enum SM3_STATES { SM3_SMStart, SM3_WaitFall, SM3_WaitRise, SM3_Playing };
+enum SM4_STATES { SM2_SMStart, SM2_Waiting, SM2_Playing, SM2_Transition, SM2_Done };
+
+int TickFct_Doorbell(int state) {
+    switch (state) {
+        case SM3_SMStart:
+            state = SM3_WaitFall;
+            break;
+        case SM3_WaitFall:
+            if (~PINA & 0x80) {
+                playing = 0x01;
+                state = SM3_Playing;
+            }
+            break;
+        case SM3_WaitRise:
+            if ((~PINA & 0x80) == 0x00) state = SM3_WaitFall;
+            break;
+        case SM3_Playing:
+            if (index >= length) {
+                state = SM3_WaitRise;
+                index = 0;
+            }
+            break;
+    }
+    
+    switch (state) {
+        case SM3_Playing:
+            break;
+        default:
+            set_PWM(0);
+            break;
+    }
+    
+    return state;
+}
+
+unsigned char currTime = 0x00;
+
+int TickFct_DoorbellSounds(int state) {
+    switch (state) {
+        case SM4_Done:
+        case SM4_SMStart:
+            state = SM4_Waiting;
+            break;
+        case SM4_Waiting:
+            if (playing) {
+                playing = 0x00;
+                state = SM4_Playing;
+            }
+            break;
+        case SM4_Playing:
+            currTime += 1;
+            if (currTime >= times[index]) {
+                currTime = 0;
+                state = SM4_Transition;
+            }
+            break;
+        case SM4_Transition:
+            index++;
+            if (index < length) {
+                state = SM4_Playing;
+            } else {
+                state = SM4_Done;
+            }
+            break;
+    }
+    
+    switch (state) {
+        case SM4_Playing:
+            set_PWM(notes[index]);
+            break;
+        case SM4_Transition:
+            set_PWM(0);
             break;
     }
     
