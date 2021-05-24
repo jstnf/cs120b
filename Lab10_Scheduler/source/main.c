@@ -66,7 +66,7 @@ int TickFct_KeyPad(int state) {
             if (x == '\0') state = SM1_Wait;
             break;
         default:
-            state = SM_Wait;
+            state = SM1_Wait;
             break;
     }
     
