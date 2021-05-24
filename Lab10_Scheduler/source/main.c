@@ -1,7 +1,7 @@
 /*	Author: jfigu042
  *  Partner(s) Name: 
  *	Lab Section: 021
- *	Assignment: Lab #10 Exercise #1
+ *	Assignment: Lab #10 Exercise #2
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -21,62 +21,144 @@ typedef struct _task {
 } task;
 
 unsigned char x = '\0';
-void validate(unsigned char input) {
+void validateOneButton(char input) {
     if (x == '\0') x = input;
-    else x = '-';
+    else x = '-'; // - character means two buttons are being pressed at once
 }
 
-void GetKeypadKey() {
+unsigned char GetKeypadKey() {
     x = '\0';
     
     PORTC = 0xEF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validate('1');
-    if ((PINC & 0x02) == 0x00) validate('4');
-    if ((PINC & 0x04) == 0x00) validate('7');
-    if ((PINC & 0x08) == 0x00) validate('*');
+    if ((PINC & 0x01) == 0x00) return('1');
+    if ((PINC & 0x02) == 0x00) return('4');
+    if ((PINC & 0x04) == 0x00) return('7');
+    if ((PINC & 0x08) == 0x00) return('*');
     
     PORTC = 0xDF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validate('2');
-    if ((PINC & 0x02) == 0x00) validate('5');
-    if ((PINC & 0x04) == 0x00) validate('8');
-    if ((PINC & 0x08) == 0x00) validate('0');
+    if ((PINC & 0x01) == 0x00) return('2');
+    if ((PINC & 0x02) == 0x00) return('5');
+    if ((PINC & 0x04) == 0x00) return('8');
+    if ((PINC & 0x08) == 0x00) return('0');
     
     PORTC = 0xBF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validate('3');
-    if ((PINC & 0x02) == 0x00) validate('6');
-    if ((PINC & 0x04) == 0x00) validate('9');
-    if ((PINC & 0x08) == 0x00) validate('#');
+    if ((PINC & 0x01) == 0x00) return('3');
+    if ((PINC & 0x02) == 0x00) return('6');
+    if ((PINC & 0x04) == 0x00) return('9');
+    if ((PINC & 0x08) == 0x00) return('#');
     
     PORTC = 0x7F;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validate('A');
-    if ((PINC & 0x02) == 0x00) validate('B');
-    if ((PINC & 0x04) == 0x00) validate('C');
-    if ((PINC & 0x08) == 0x00) validate('D');
+    if ((PINC & 0x01) == 0x00) return('A');
+    if ((PINC & 0x02) == 0x00) return('B');
+    if ((PINC & 0x04) == 0x00) return('C');
+    if ((PINC & 0x08) == 0x00) return('D');
+    
+    return ('\0');
 }
 
-enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
+enum SM1_STATES { SM1_SMStart, SM1_Wrong, SM1_Wait, SM1_Right, SM1_R1, SM1_F1, SM1_R2, SM1_F2, SM1_R3, SM1_F3, SM1_R4, SM1_F4, SM1_R5, SM1_F5 };
 unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
+    GetKeypadKey();
     
     switch (state) {
-        case SM1_Wait:
-            if (x != '\0') state = SM1_Press;
+        case SM1_Wrong:
+            if (x == '#') state = SM1_Wait;
+            else state = SM1_Wrong;
             break;
-        case SM1_Press:
-            if (x == '\0') state = SM1_Wait;
+        case SM1_Wait:
+            if (x == '\0') state = SM1_R1;
+            else if (x == '#') state = SM1_Wait;
+            else state = SM1_Wrong;
+        case SM1_Right:
+            if (x == '\0') state = SM1_Right;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R1:
+            if (x == '\0') state = SM1_R1;
+            else if (x == '1') state = SM1_F1;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F1:
+            if (x == '1') state = SM1_F1;
+            else if (x == '\0') state = SM1_R2;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R2:
+            if (x == '\0') state = SM1_R2;
+            else if (x == '2') state = SM1_F2;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F2:
+            if (x == '2') state = SM1_F2;
+            else if (x == '\0') state = SM1_R3;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R3:
+            if (x == '\0') state = SM1_R3;
+            else if (x == '3') state = SM1_F3;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F3:
+            if (x == '3') state = SM1_F3;
+            else if (x == '\0') state = SM1_R4;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R4:
+            if (x == '\0') state = SM1_R4;
+            else if (x == '4') state = SM1_F4;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F4:
+            if (x == '4') state = SM1_F4;
+            else if (x == '\0') state = SM1_R5;
+            else state = SM1_Wrong;
+            break;
+        case SM1_R5:
+            if (x == '\0') state = SM1_R5;
+            else if (x == '5') state = SM1_F5;
+            else state = SM1_Wrong;
+            break;
+        case SM1_F5:
+            if (x == '5') state = SM1_F5;
+            else if (x == '\0') state = SM1_Right;
+            else state = SM1_Wrong;
             break;
         default:
-            state = SM1_Wait;
+            state = SM1_Wrong;
             break;
     }
     
     switch (state) {
-        case SM1_Press:
-            feedback = 0x80;
+        case SM1_Right:
+            feedback = 0x01;
+            break;
+        case SM1_Wrong:
+            feedback = 0x02;
+            break;
+        case SM1_R1:
+        case SM1_F1:
+            feedback = 0x04;
+            break;
+        case SM1_R2:
+        case SM1_F2:
+            feedback = 0x08;
+            break;
+        case SM1_R3:
+        case SM1_F3:
+            feedback = 0x10;
+            break;
+        case SM1_R4:
+        case SM1_F4:
+            feedback = 0x20;
+            break;
+        case SM1_R5:
+        case SM1_F5:
+            feedback = 0x40;
             break;
         default:
             feedback = 0x00;
@@ -132,63 +214,16 @@ int main(void) {
     /* Insert your solution below */
     unsigned short i;
     while (1) {
-        GetKeypadKey();
-        switch (x) {
-            case '\0':
-                PORTB = 0x00;
-                break;
-            case '1':
-                PORTB = 0x01;
-                break;
-            case '2':
-                PORTB = 0x02;
-                break;
-            case '3':
-                PORTB = 0x03;
-                break;
-            case 'A':
-                PORTB = 0x04;
-                break;
-            case '4':
-                PORTB = 0x05;
-                break;
-            case '5':
-                PORTB = 0x06;
-                break;
-            case '6':
-                PORTB = 0x07;
-                break;
-            case 'B':
-                PORTB = 0x08;
-                break;
-            case '7':
-                PORTB = 0x09;
-                break;
-            case '8':
-                PORTB = 0x0A;
-                break;
-            case '9':
-                PORTB = 0x0B;
-                break;
-            case 'C':
-                PORTB = 0x0C;
-                break;
-            case '*':
-                PORTB = 0x0D;
-                break;
-            case '0':
-                PORTB = 0x0E;
-                break;
-            case '#':
-                PORTB = 0x0F;
-                break;
-            case 'D':
-                PORTB = 0x10;
-                break;
-            default:
-                PORTB = 0xF0;
-                break;
+        for (i = 0; i < numTasks; i++) {
+            if (tasks[i]->elapsedTime == tasks[i]->period) {
+                tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
+                tasks[i]->elapsedTime = 0;
+            }
+            tasks[i]->elapsedTime += 1;
         }
+        
+        while (!TimerFlag);
+        TimerFlag = 0;
     }
     return 1;
 }
