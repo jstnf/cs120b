@@ -146,7 +146,7 @@ int TickFct_KeyPad(int state) {
     return state;
 }
 
-enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_Pressed }
+enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_Pressed };
 unsigned char lockingFeedback = 0x01;
 int TickFct_Locking(int state) {
     switch (state) {
