@@ -132,7 +132,7 @@ int main(void) {
     /* Insert your solution below */
     unsigned short i;
     while (1) {
-        
+        GetKeypadKey();
         switch (x) {
             case '\0':
                 PORTB = 0x00;
