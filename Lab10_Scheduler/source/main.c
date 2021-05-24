@@ -26,7 +26,7 @@ void validateOneButton(unsigned char input) {
     else x = '-'; // - character means two buttons are being pressed at once
 }
 
-unsigned char GetKeypadKey() {
+void GetKeypadKey() {
     x = '\0';
     
     PORTC = 0xEF;
