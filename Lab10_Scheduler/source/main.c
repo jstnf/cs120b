@@ -151,10 +151,10 @@ unsigned char lockingFeedback = 0x01;
 int TickFct_Locking(int state) {
     switch (state) {
         case SM2_Wait:
-            if ((PINB & 0x80) == 0x80) state = SM2_Pressed;
+            if ((PINB & 0x80) == 0x00) state = SM2_Pressed;
             break;
         case SM2_Pressed:
-            if ((PINB & 0x80) == 0x00) state = SM2_Wait; 
+            if ((PINB & 0x80) == 0x80) state = SM2_Wait; 
             break;
         default:
             state = SM2_Wait;
