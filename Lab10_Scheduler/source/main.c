@@ -54,8 +54,9 @@ unsigned char GetKeypadKey() {
 
 enum SM_STATES { SM_SMStart, SM_Wait, SM_Press } SM_STATE;
 
+unsigned char x;
 void TickFct_KeyPad() {
-    static unsigned char x = GetKeypadKey();
+    x = GetKeypadKey();
     
     switch (SM_STATE) {
         case SM_SMStart:
@@ -84,8 +85,8 @@ int main(void) {
     DDRB = 0xFF; PORTB = 0x00;
     DDRC = 0xF0; PORTC = 0x0F;
     
-    static _task task1;
-    _task *tasks[] = { &task1 };
+    static task task1;
+    task *tasks[] = { &task1 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = -1;
