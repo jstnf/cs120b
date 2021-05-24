@@ -52,7 +52,7 @@ unsigned char GetKeypadKey() {
     return('\0');
 }
 
-enum SM_STATES { SM_SMStart, SM_Wait, SM_Press } SM_STATE;
+enum SM_STATES { SM_SMStart, SM_Wait, SM_Press };
 
 unsigned char x;
 int TickFct_KeyPad(int state) {
@@ -93,7 +93,7 @@ int main(void) {
     
     const char start = -1;
     task1.state = start;
-    task1.period = 1;
+    task1.period = 200;
     task1.elapsedTime = task1.period;
     task1.TickFct = &TickFct_KeyPad;
     
@@ -108,6 +108,7 @@ int main(void) {
                 tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
                 tasks[i]->elapsedTime = 0;
             }
+            tasks[i]->elapsedTime += 100;
         }
         
         while (!TimerFlag);
