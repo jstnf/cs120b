@@ -135,6 +135,29 @@ int TickFct_KeyPad(int state) {
         case SM1_Right:
             feedback = 0x01;
             break;
+        case SM1_Wrong:
+            feedback = 0x02;
+            break;
+        case SM1_R1:
+        case SM1_F1:
+            feedback = 0x04;
+            break;
+        case SM1_R2:
+        case SM1_F2:
+            feedback = 0x08;
+            break;
+        case SM1_R3:
+        case SM1_F3:
+            feedback = 0x10;
+            break;
+        case SM1_R4:
+        case SM1_F4:
+            feedback = 0x20;
+            break;
+        case SM1_R5:
+        case SM1_F5:
+            feedback = 0x40;
+            break;
         default:
             feedback = 0x00;
             break;
