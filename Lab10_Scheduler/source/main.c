@@ -331,7 +331,7 @@ int main(void) {
     DDRC = 0xF0; PORTC = 0x0F;
     
     static task task1, task2, task3, task4, task0;
-    task *tasks[] = { &task1, &task2, &task3, &task4, &task0 };
+    task *tasks[] = { &task1, &task2, &task0, &task3, &task4 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = -1;
