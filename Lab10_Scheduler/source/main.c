@@ -133,7 +133,6 @@ int main(void) {
     /* Insert your solution below */
     unsigned short i;
     while (1) {
-        x = GetKeypadKey();
         
         switch (x) {
             case '\0':
