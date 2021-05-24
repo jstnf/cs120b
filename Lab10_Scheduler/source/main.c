@@ -20,6 +20,12 @@ typedef struct _task {
     int (*TickFct)(int);
 } task;
 
+unsigned char x = '\0';
+void validate(unsigned char input) {
+    if (x == '\0') x = input;
+    else x = '\n';
+}
+
 unsigned char GetKeypadKey() {
     PORTC = 0xEF;
     asm("nop");
@@ -53,7 +59,6 @@ unsigned char GetKeypadKey() {
 }
 
 enum SM1_STATES { SM1_SMStart, SM1_Wait, SM1_Press };
-unsigned char x;
 unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
     x = GetKeypadKey();
