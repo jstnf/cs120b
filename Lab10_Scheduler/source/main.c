@@ -26,42 +26,42 @@ void validateOneButton(char input) {
     else x = '\n'; // Newline character means two buttons are being pressed at once
 }
 
-void GetKeypadKey() {
-    x = '\0';
-    
+unsigned char GetKeypadKey() {
     PORTC = 0xEF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validateOneButton('1');
-    if ((PINC & 0x02) == 0x00) validateOneButton('4');
-    if ((PINC & 0x04) == 0x00) validateOneButton('7');
-    if ((PINC & 0x08) == 0x00) validateOneButton('*');
+    if ((PINC & 0x01) == 0x00) return('1');
+    if ((PINC & 0x02) == 0x00) return('4');
+    if ((PINC & 0x04) == 0x00) return('7');
+    if ((PINC & 0x08) == 0x00) return('*');
     
     PORTC = 0xDF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validateOneButton('2');
-    if ((PINC & 0x02) == 0x00) validateOneButton('5');
-    if ((PINC & 0x04) == 0x00) validateOneButton('8');
-    if ((PINC & 0x08) == 0x00) validateOneButton('0');
+    if ((PINC & 0x01) == 0x00) return('2');
+    if ((PINC & 0x02) == 0x00) return('5');
+    if ((PINC & 0x04) == 0x00) return('8');
+    if ((PINC & 0x08) == 0x00) return('0');
     
     PORTC = 0xBF;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validateOneButton('3');
-    if ((PINC & 0x02) == 0x00) validateOneButton('6');
-    if ((PINC & 0x04) == 0x00) validateOneButton('9');
-    if ((PINC & 0x08) == 0x00) validateOneButton('#');
+    if ((PINC & 0x01) == 0x00) return('3');
+    if ((PINC & 0x02) == 0x00) return('6');
+    if ((PINC & 0x04) == 0x00) return('9');
+    if ((PINC & 0x08) == 0x00) return('#');
     
     PORTC = 0x7F;
     asm("nop");
-    if ((PINC & 0x01) == 0x00) validateOneButton('A');
-    if ((PINC & 0x02) == 0x00) validateOneButton('B');
-    if ((PINC & 0x04) == 0x00) validateOneButton('C');
-    if ((PINC & 0x08) == 0x00) validateOneButton('D');
+    if ((PINC & 0x01) == 0x00) return('A');
+    if ((PINC & 0x02) == 0x00) return('B');
+    if ((PINC & 0x04) == 0x00) return('C');
+    if ((PINC & 0x08) == 0x00) return('D');
+    
+    return ('\0');
 }
 
 enum SM1_STATES { SM1_SMStart, SM1_Wrong, SM1_Wait, SM1_Right, SM1_R1, SM1_F1, SM1_R2, SM1_F2, SM1_R3, SM1_F3, SM1_R4, SM1_F4, SM1_R5, SM1_F5 };
 unsigned char feedback = 0x00;
 int TickFct_KeyPad(int state) {
-    GetKeypadKey();
+    x = GetKeypadKey();
     
     switch (state) {
         case SM1_Wrong:
