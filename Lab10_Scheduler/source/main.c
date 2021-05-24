@@ -60,6 +60,7 @@ void GetKeypadKey() {
 
 enum SM1_STATES { SM1_SMStart, SM1_Wrong, SM1_Wait, SM1_Right, SM1_R1, SM1_F1, SM1_R2, SM1_F2, SM1_R3, SM1_F3, SM1_R4, SM1_F4, SM1_R5, SM1_F5 };
 unsigned char feedback = 0x00;
+unsigned short override = 0x00;
 int TickFct_KeyPad(int state) {
     GetKeypadKey();
     
@@ -124,7 +125,11 @@ int TickFct_KeyPad(int state) {
             break;
         case SM1_F5:
             if (x == '5') state = SM1_F5;
-            else if (x == '\0') state = SM1_Right;
+            else if (x == '\0') {
+                state = SM1_Right;
+                override = 0x01; // Getting the combination correct overrides the locking system
+                // It will relock when PB7 is pressed
+            }
             else state = SM1_Wrong;
             break;
         default:
@@ -136,35 +141,39 @@ int TickFct_KeyPad(int state) {
         case SM1_Right:
             feedback = 0x01;
             break;
-        case SM1_Wrong:
-            feedback = 0x02;
-            break;
-        case SM1_R1:
-        case SM1_F1:
-            feedback = 0x04;
-            break;
-        case SM1_R2:
-        case SM1_F2:
-            feedback = 0x08;
-            break;
-        case SM1_R3:
-        case SM1_F3:
-            feedback = 0x10;
-            break;
-        case SM1_R4:
-        case SM1_F4:
-            feedback = 0x20;
-            break;
-        case SM1_R5:
-        case SM1_F5:
-            feedback = 0x40;
-            break;
-        default:
-            feedback = 0x00;
-            break;
     }
     
     return state;
+}
+
+enum SM2_STATES { SM2_SMStart, SM2_Wait, SM2_Pressed }
+unsigned char lockingFeedback = 0x01;
+int TickFct_Locking(int state) {
+    switch (state) {
+        case SM2_Wait:
+            if ((PINB & 0x80) == 0x80) state = SM2_Pressed;
+            break;
+        case SM2_Pressed:
+            if ((PINB & 0x80) == 0x00) state = SM2_Wait; 
+            break;
+        default:
+            state = SM2_Wait;
+            break;
+    }
+    
+    switch (state) {
+        case SM2_Pressed:
+            if (override) {
+                override = 0x00;
+                lockingFeedback = 0x00;
+            }
+            break;
+        default:
+            if (override) {
+                lockingFeedback = 0x01;
+            }
+            break;
+    }
 }
 
 // SM to create outputs (req. since lab 9)
@@ -178,7 +187,7 @@ int TickFct_Combine(int state) {
     
     switch (state) {
         case SM0_Combine:
-            PORTB = feedback;
+            PORTB = (PINB & 0x80) | (feedback & lockingFeedback); // Do not overwrite PB7
             break;
         default:
             break;
@@ -189,11 +198,11 @@ int TickFct_Combine(int state) {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
-    DDRB = 0xFF; PORTB = 0x00;
+    DDRB = 0x7F; PORTB = 0x00;
     DDRC = 0xF0; PORTC = 0x0F;
     
     static task task1, task0;
-    task *tasks[] = { &task1, &task0 };
+    task *tasks[] = { &task1, &task2, &task0 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = -1;
@@ -201,6 +210,11 @@ int main(void) {
     task1.period = 1;
     task1.elapsedTime = task1.period;
     task1.TickFct = &TickFct_KeyPad;
+    
+    task2.state = start;
+    task2.period = 1;
+    task2.elapsedTime = task2.period;
+    task2.TickFct = &TickFct_Locking;
     
     task0.state = start;
     task0.period = 1;
