@@ -230,9 +230,6 @@ enum SM4_STATES { SM4_SMStart, SM4_Waiting, SM4_Playing, SM4_Transition, SM4_Don
 
 int TickFct_Doorbell(int state) {
     switch (state) {
-        case SM3_SMStart:
-            state = SM3_WaitFall;
-            break;
         case SM3_WaitFall:
             if (~PINA & 0x80) {
                 playing = 0x01;
@@ -247,6 +244,9 @@ int TickFct_Doorbell(int state) {
                 state = SM3_WaitRise;
                 index = 0;
             }
+            break;
+        default:
+            state = SM3_WaitFall;
             break;
     }
     
@@ -265,8 +265,7 @@ unsigned char currTime = 0x00;
 
 int TickFct_DoorbellSounds(int state) {
     switch (state) {
-        case SM4_Done:
-        case SM4_SMStart:
+        default:
             state = SM4_Waiting;
             break;
         case SM4_Waiting:
