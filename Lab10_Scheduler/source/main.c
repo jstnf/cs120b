@@ -315,7 +315,7 @@ int TickFct_Combine(int state) {
     
     switch (state) {
         case SM0_Combine:
-            PORTB = (PINB & 0x80) | (feedback & lockingFeedback); // Do not overwrite PB7
+            PORTB = (PINB & 0x80) | (PINB & 0x40) | (feedback & lockingFeedback); // Do not overwrite PB7 or PB6
             break;
         default:
             break;
