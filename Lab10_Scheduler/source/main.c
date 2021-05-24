@@ -55,22 +55,22 @@ unsigned char GetKeypadKey() {
 enum SM_STATES { SM_SMStart, SM_Wait, SM_Press } SM_STATE;
 
 unsigned char x;
-void TickFct_KeyPad() {
+int TickFct_KeyPad(int state) {
     x = GetKeypadKey();
     
-    switch (SM_STATE) {
+    switch (state) {
         case SM_Wait:
-            if (x != '\0') SM_STATE = SM_Press;
+            if (x != '\0') state = SM_Press;
             break;
         case SM_Press:
-            if (x == '\0') SM_STATE = SM_Wait;
+            if (x == '\0') state = SM_Wait;
             break;
         default:
-            SM_STATE = SM_Wait;
+            state = SM_Wait;
             break;
     }
     
-    switch (SM_STATE) {
+    switch (state) {
         case SM_Press:
             PORTB = 0xFF;
             break;
@@ -78,6 +78,8 @@ void TickFct_KeyPad() {
             PORTB = 0x00;
             break;
     }
+    
+    return state;
 }
 
 int main(void) {
