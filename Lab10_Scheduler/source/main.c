@@ -215,18 +215,18 @@ int TickFct_Locking(int state) {
 
 // DOORBELL
 
-double notes[8] = { 
+double notes[9] = { 
     e5, ds5, e5, ds5, e5, b4, d5, c5, a4 };
     
-unsigned char times[8] = { 
-    30, 30, 30, 30, 30, 30, 30, 30 };
+unsigned char times[9] = { 
+    30, 30, 30, 30, 30, 30, 30, 30, 30 };
 
 unsigned char playing = 0x00;
 unsigned char index = 0x00;
-unsigned char length = 8;
+unsigned char length = 9;
     
 enum SM3_STATES { SM3_SMStart, SM3_WaitFall, SM3_WaitRise, SM3_Playing };
-enum SM4_STATES { SM2_SMStart, SM2_Waiting, SM2_Playing, SM2_Transition, SM2_Done };
+enum SM4_STATES { SM4_SMStart, SM4_Waiting, SM4_Playing, SM4_Transition, SM4_Done };
 
 int TickFct_Doorbell(int state) {
     switch (state) {
