@@ -8,6 +8,7 @@
  *	code, is my own original work.
  */
 #include <avr/io.h>
+#include "timer.h"
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
@@ -53,9 +54,8 @@ unsigned char GetKeypadKey() {
 
 enum SM_STATES { SM_SMStart, SM_Wait, SM_Press } SM_STATE;
 
-unsigned char x;
 void TickFct_KeyPad() {
-    x = GetKeypadKey();
+    static unsigned char x = GetKeypadKey();
     
     switch (SM_STATE) {
         case SM_SMStart:
@@ -83,11 +83,32 @@ int main(void) {
     /* Insert DDR and PORT initializations */
     DDRB = 0xFF; PORTB = 0x00;
     DDRC = 0xF0; PORTC = 0x0F;
+    
+    static _task task1;
+    _task *tasks[] = { &task1 };
+    const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
+    
+    const char start = -1;
+    task1.state = start;
+    task1.period = 1;
+    task1.elapsedTime = task1.period;
+    task1.TickFct = &TickFct_KeyPad;
+    
+    TimerSet(100);
+    TimerOn();
 
     /* Insert your solution below */
-    unsigned char x;
+    unsigned short i;
     while (1) {
-        TickFct_KeyPad();
+        for (i = 0; i < numTasks; i++) {
+            if (tasks[i]->elapsedTime == tasks[i]->period) {
+                tasks[i]->state = tasks[i]->TickFct(tasks[i]->state);
+                tasks[i]->elapsedTime = 0;
+            }
+        }
+        
+        while (!TimerFlag);
+        TimerFlag = 0;
     }
     return 1;
 }
