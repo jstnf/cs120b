@@ -19,6 +19,48 @@
 #include "simAVRHeader.h"
 #endif
 
+#define HITNOTE 196.00
+#define WINNOTE 293.66
+
+// Sound system
+double currentNote = 0;
+unsigned char playTicks = 0x01;
+
+enum SM6_STATES { SM6_Wait, SM6_Playing };
+int TickFct_SoundPlayer(int state) {
+    switch (state) {
+        default:
+            if (playTicks > 0x01) state = SM6_Playing;
+            else state = SM6_Wait;
+            break;
+        case SM6_Playing:
+            playTicks = playTicks - 1 == 0x00 ? 0x01 : 0x00;
+            if (playTicks == 0x01) {
+                state = SM6_Wait;
+            }
+            break;
+    }
+    
+    switch (state) {
+        default:
+            set_PWM(0);
+            break;
+        case SM6_Playing:
+            set_PWM(currentNote);
+            break;
+    }
+}
+
+void hitSound() {
+    currentNote = HITNOTE;
+    playTicks = 0x0D;
+}
+
+void winSound() {
+    currentNote = WINNOTE;
+    playTicks = 0x4F;
+}
+
 // RNG (from C standard, see https://stackoverflow.com/questions/4768180/rand-implementation)
 static unsigned long int next = 1;
 
@@ -253,12 +295,14 @@ void PongTick() {
             
             // Finally, update ball position!
             ball_pos = getNextPos();
+            hitSound();
             break;
         case 0x01:
         case 0x02:
             // TODO code win condition
             roundResetGame();
             pongGameTick = 0;
+            winSound();
             break;
     }
 }
@@ -385,7 +429,7 @@ void moveP2PaddleDown() {
 unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
 
 // SM for Player controls
-unsigned char maintainSpinTicks = 0x00;
+unsigned char maintainSpinTicks = 0x01;
 
 enum SM4_STATES { SM4_Wait, SM4_UpRise, SM4_UpFall, SM4_DownRise, SM4_DownFall };
 int TickFct_PlayerControl(int state) {
@@ -413,16 +457,19 @@ int TickFct_PlayerControl(int state) {
             break;
     }
     
+    maintainSpinTicks = maintainSpinTicks - 1 == 0x00 ? 0x01 : maintainSpinTicks - 1;
     
     switch (state) {
         case SM4_UpRise:
             moveP1PaddleUp();
+            maintainSpinTicks = 0x0A; // Add cooldown to maintain spin
             break;
         case SM4_DownRise:
             moveP1PaddleDown();
+            maintainSpinTicks = 0x0A; // Add cooldown to maintain spin
             break;
         default:
-            spin = (spin & 0x0F) | 0x10;
+            if (maintainSpinTicks == 0x01) spin = (spin & 0x0F) | 0x10;
             break;
     }
     
