@@ -373,12 +373,16 @@ int TickFct_CPUControl(int state) {
             break;
     }
     
+    
+    unsigned char diff;
+    unsigned char yPos;
+    unsigned char paddlePos;
+    
     switch (state) {
         case SM5_Follow:
+            yPos = ball_pos & 0x0F;
+            paddlePos = paddles_pos & 0x0F;
             // If there is a difference between the ball pos and p2 pos greater than 2, move in the correct direction
-            unsigned char diff;
-            unsigned char yPos = ball_pos & 0x0F;
-            unsigned char paddlePos = paddles_pos & 0x0F;
             if (paddlePos > yPos) {
                 diff = paddlePos - yPos;
                 if (diff > 0x01) moveP2PaddleUp();
