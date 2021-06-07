@@ -32,7 +32,7 @@ unsigned int pongGameTick = 0;
 unsigned char ball_vel = 0x11; // [4] is X vel - 0 moves left, 1 moves right; [1:0] is Y vel - 0 ball moves up, 1 ball moves straight, 2 ball moves down
 unsigned char ball_pos = 0x33; // [7:4] is X pos; [3:0] is Y pos - 0 is top border, game area 1-5, 6 is bottom border
 
-unsigned char paddles_pos = 0x33; // [7:4] is P1 pos; [3:0] is P2 pos - 2 is top position, 3 is middle position, 4 is bottom position
+unsigned char paddles_pos = 0x33; // [7:4] is P1 (left) pos; [3:0] is P2 (right) pos - 2 is top position, 3 is middle position, 4 is bottom position
 
 // GAME LOGIC
 void fullResetGame() {
@@ -47,10 +47,135 @@ void roundResetGame() {
     paddles_pos = 0x33;
 }
 
+// Use the current ball_vel and ball_pos to get the next position of the ball
+unsigned char getNextPos() {
+    unsigned char result = 0x00;
+    
+    // Horizontal movement
+    unsigned char x = ball_pos >> 4;
+    if (ball_vel & 0x40) {  // Move right
+        x++;
+    } else {                // Move left
+        x--
+    }
+    result = result | (x << 4);
+    
+    // Vertical movement
+    switch (ball_vel & 0x0F) {
+        case 0x00:          // Move up
+            result = result | ((ball_pos & 0x0F) - 1);
+            break;
+        case 0x01:          // Move straight
+            result = result | (ball_pos & 0x0F);
+            break;
+        case 0x02:          // Move down
+            result = result | ((ball_pos & 0x0F) + 1);
+            break;
+    }
+    
+    return result;
+}
+
+// Return 0 if there is a win, 1 if the ball should head upward, 2 if the ball should head downward, 3 if the ball should head straight
+unsigned char checkWinPosition(unsigned char yPos, unsigned char paddlePos) {
+    // Check if the ball's y pos and the center pos match - if so we can just return 3 (moves straight back)
+    if (yPos == paddlePos) return 0x03;
+    
+    // Now check for win conditions
+    // If there is a difference of at least 2 between the paddlePos and yPos, we have a win
+    unsigned char diff;
+    if (paddlePos > yPos) {
+        diff = paddlePos - yPos;
+        if (diff == 0x01) return 0x01; // Move upward
+        else return 0x00; // Win condition
+    } else {
+        diff = yPos - paddlePos;
+        if (diff == 0x01) return 0x02; // Move downward
+        else return 0x00; // Win condition
+    }
+}
+
 void PongTick() {
     // The first tick will reset the game to starting state, but maintain score
     if (pongGameTick == 1) {
         roundResetGame();
+    }
+    
+    // Get unchecked next position
+    unsigned char nextPos = getNextPos();
+    
+    // First check if the ball is going out of bounds - if so, we need to reverse its velocity
+    if ((nextPos & 0x0F) == 0x00) { // The ball is heading upward, needs to be sent downward
+        ball_vel = (ball_vel & 0xF0) | 0x02;
+    } else if ((nextPos & 0x0F) == 0x06) { // The ball is heading downward, needs to be sent upward
+        ball_vel = (ball_vel & 0xF0);
+    }
+    
+    // With new velocity, recheck next position
+    nextPos = getNextPos();
+    
+    // Check if the ball is entering either paddle zone - we need to check if that space is occupied by a paddle if so
+    // We convert the ball's position and use the position of a specific paddle to check for a win condition
+    unsigned char isolatedYPos = nextPos & 0x0F;
+    unsigned char winCondition = 0x00; // Keep this at 0x00 if no one wins, 0x01 if player 1 (left) wins, 0x02 if player 2 (right) wins
+    if ((nextPos & 0xF0) == 0x00) { // The ball has reached the left side, isolate the left paddle position
+        switch (checkWinPosition(isolatedYPos, paddles_pos >> 4)) {
+            case 0x00: // We have a winner
+                winCondition = 0x02;
+                break;
+            
+            // No one wins, update the x and y velocity and calculate new position of ball (now moving right)
+            
+            case 0x01: // Ball now moves up left
+                ball_vel = 0x11;
+                break;
+            case 0x02: // Ball now moves down left
+                ball_vel = 0x12;
+                break;
+            case 0x03: // Ball now moves straight left
+                ball_vel = 0x10;
+                break;
+        }
+    } else if ((nextPos & 0xF0) == 0x70) { // The ball has reached the right side, isolate the right paddle position
+        switch (checkWinPosition(isolatedYPos, paddles_pos & 0x0F)) {
+            case 0x00: // We have a winner
+                winCondition = 0x02;
+                break;
+            
+            // No one wins, update the x and y velocity and calculate new position of ball (now moving right)
+            
+            case 0x01: // Ball now moves up right
+                ball_vel = 0x01;
+                break;
+            case 0x02: // Ball now moves down right
+                ball_vel = 0x02;
+                break;
+            case 0x03: // Ball now moves straight right
+                ball_vel = 0x00;
+                break;
+        }
+    }
+    
+    switch (winCondition) {
+        default:
+            // Recheck y velocity since we updated it before using only paddle position information
+            // This ensures the ball stays inbounds
+            // We can just use our old code
+            nextPos = getNextPos();
+            if ((nextPos & 0x0F) == 0x00) { // The ball is heading upward, needs to be sent downward
+                ball_vel = (ball_vel & 0xF0) | 0x02;
+            } else if ((nextPos & 0x0F) == 0x06) { // The ball is heading downward, needs to be sent upward
+                ball_vel = (ball_vel & 0xF0);
+            }
+            
+            // Finally, update ball position!
+            ball_pos = getNextPos();
+            break;
+        case 0x01:
+        case 0x02:
+            // TODO code win condition
+            pongGameTick = 0;
+            break;
     }
 }
 
