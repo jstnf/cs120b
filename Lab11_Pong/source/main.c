@@ -216,8 +216,10 @@ void PongTick() {
     // First check if the ball is going out of bounds - if so, we need to reverse its velocity
     if ((nextPos & 0x0F) == 0x00) { // The ball is heading upward, needs to be sent downward
         ball_vel = (ball_vel & 0xF0) | 0x02;
+        hitSound();
     } else if ((nextPos & 0x0F) == 0x06) { // The ball is heading downward, needs to be sent upward
         ball_vel = (ball_vel & 0xF0);
+        hitSound();
     }
     
     // With new velocity, recheck next position
@@ -240,18 +242,21 @@ void PongTick() {
                 increaseBallSpeed();
                 doSpinP1();
                 ticksUntilNext = ball_speed;
+                hitSound();
                 break;
             case 0x02: // Ball now moves down right
                 ball_vel = 0x12;
                 decreaseBallSpeed();
                 doSpinP1();
                 ticksUntilNext = ball_speed;
+                hitSound();
                 break;
             case 0x03: // Ball now moves straight right
                 ball_vel = 0x11;
                 increaseBallSpeed();
                 doSpinP1();
                 ticksUntilNext = ball_speed;
+                hitSound();
                 break;
         }
     } else if ((nextPos & 0xF0) == 0x70) { // The ball has reached the right side, isolate the right paddle position
@@ -267,18 +272,21 @@ void PongTick() {
                 increaseBallSpeed();
                 doSpinP2();
                 ticksUntilNext = ball_speed;
+                hitSound();
                 break;
             case 0x02: // Ball now moves down left
                 ball_vel = 0x02;
                 decreaseBallSpeed();
                 doSpinP2();
                 ticksUntilNext = ball_speed;
+                hitSound();
                 break;
             case 0x03: // Ball now moves straight left
                 ball_vel = 0x01;
                 increaseBallSpeed();
                 doSpinP2();
                 ticksUntilNext = ball_speed;
+                hitSound();
                 break;
         }
     }
@@ -291,13 +299,14 @@ void PongTick() {
             nextPos = getNextPos();
             if ((nextPos & 0x0F) == 0x00) { // The ball is heading upward, needs to be sent downward
                 ball_vel = (ball_vel & 0xF0) | 0x02;
+                hitSound();
             } else if ((nextPos & 0x0F) == 0x06) { // The ball is heading downward, needs to be sent upward
                 ball_vel = (ball_vel & 0xF0);
+                hitSound();
             }
             
             // Finally, update ball position!
             ball_pos = getNextPos();
-            hitSound();
             break;
         case 0x01:
         case 0x02:
