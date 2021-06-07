@@ -34,7 +34,7 @@ int TickFct_SoundPlayer(int state) {
             else state = SM6_Wait;
             break;
         case SM6_Playing:
-            playTicks = playTicks - 1 == 0x00 ? 0x01 : 0x00;
+            playTicks = playTicks - 1 == 0x00 ? 0x01 : playTicks - 1;
             if (playTicks == 0x01) {
                 state = SM6_Wait;
             }
