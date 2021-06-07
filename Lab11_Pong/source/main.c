@@ -274,6 +274,50 @@ void drawStartScreen() {
 
 unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
 
+// SM for Player controls
+enum SM4_STATES { SM4_Wait, SM4_UpRise, SM4_UpFall, SM4_DownRise, SM4_DownFall };
+int TickFct_PlayerControl(int state) {
+    if (active == 0x00) return SM4_Wait; // Reset this if the game is not active
+    
+    switch (state) {
+        default:
+            if ((~PINA & 0x03) == 0x01) { // Move up
+                state = SM4_UpRise;
+            } else if ((~PINA & 0x03) == 0x02) { // Move down
+                state = SM4_DownRise;
+            }
+            break;
+        case SM4_UpRise:
+            state = SM4_UpFall;
+            break;
+        case SM4_UpFall:
+            if ((~PINA & 0x01) == 0x00) state = SM4_Wait;
+            break;
+        case SM4_DownRise:
+            state = SM4_DownFall;
+            break;
+        case SM4_DownFall:
+            if ((~PINA & 0x02) == 0x00) state = SM4_Wait;
+            break;
+    }
+    
+    unsigned char isolatedPaddlePos = paddles_pos >> 4;
+    switch (state) {
+        case SM4_UpRise:
+            isolatedPaddlePos = (isolatedPaddlePos - 1 == 0x01 ? 0x02 : isolatedPaddlePos - 1) << 4;
+            paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
+            break;
+        case SM4_DownRise:
+            isolatedPadlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1) << 4;
+            paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
+            break;
+        default:
+            break;
+    }
+    
+    return state;
+}
+
 // SM for the game tick
 enum SM3_STATES { SM3_NotPlaying, SM3_Playing };
 int TickFct_PongTick(int state) {
@@ -417,8 +461,8 @@ int main(void) {
     DDRD = 0xFF; PORTD = 0x00;
 
     /* Insert your solution below */
-    static task task0, task1, task2, task3;
-    task *tasks[] = { &task3, &task2, &task1, &task0 }; // Task execution order
+    static task task0, task1, task2, task3, task4;
+    task *tasks[] = { &task4, &task3, &task2, &task1, &task0 }; // Task execution order
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = 0;
@@ -441,6 +485,11 @@ int main(void) {
     task3.period = 333;
     task3.elapsedTime = task3.period;
     task3.TickFct = &TickFct_PongTick;
+    
+    task4.state = start;
+    task4.period = 20;
+    task4.elapsedTime = task4.period;
+    task4.TickFct = &TickFct_PlayerControl;
     
     TimerSet(1);
     TimerOn();
