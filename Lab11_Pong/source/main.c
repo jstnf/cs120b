@@ -260,7 +260,7 @@ int TickFct_Combine(int state) {
 
 int main(void) {
     /* Insert DDR and PORT initializations */
-    DDRA = 0x00; PORTA = 0x11;
+    DDRA = 0x00; PORTA = 0xFF;
     DDRC = 0xFF; PORTC = 0x00;
     DDRD = 0xFF; PORTD = 0x00;
 
