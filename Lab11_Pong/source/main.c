@@ -271,8 +271,10 @@ void drawStartScreen() {
 }
 
 unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
+
+// SM for the game tick
 enum SM3_STATES { SM3_NotPlaying, SM3_Playing };
-int TickFct_PongTick() {
+int TickFct_PongTick(int state) {
     switch (state) {
         default:
             if (active) state = SM3_Playing;
