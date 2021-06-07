@@ -53,12 +53,12 @@ unsigned char getNextPos() {
     
     // Horizontal movement
     unsigned char x = ball_pos >> 4;
-    if (ball_vel & 0x40) {  // Move right
+    if (ball_vel & 0xF0) {  // Move right
         x++;
     } else {                // Move left
         x--;
     }
-    result = result | (x << 4);
+    result = x << 4;
     
     // Vertical movement
     switch (ball_vel & 0x0F) {
@@ -126,13 +126,13 @@ void PongTick() {
             
             // No one wins, update the x and y velocity and calculate new position of ball (now moving right)
             
-            case 0x01: // Ball now moves up left
+            case 0x01: // Ball now moves up right
                 ball_vel = 0x11;
                 break;
-            case 0x02: // Ball now moves down left
+            case 0x02: // Ball now moves down right
                 ball_vel = 0x12;
                 break;
-            case 0x03: // Ball now moves straight left
+            case 0x03: // Ball now moves straight right
                 ball_vel = 0x10;
                 break;
         }
@@ -144,13 +144,13 @@ void PongTick() {
             
             // No one wins, update the x and y velocity and calculate new position of ball (now moving right)
             
-            case 0x01: // Ball now moves up right
+            case 0x01: // Ball now moves up left
                 ball_vel = 0x01;
                 break;
-            case 0x02: // Ball now moves down right
+            case 0x02: // Ball now moves down left
                 ball_vel = 0x02;
                 break;
-            case 0x03: // Ball now moves straight right
+            case 0x03: // Ball now moves straight left
                 ball_vel = 0x00;
                 break;
         }
