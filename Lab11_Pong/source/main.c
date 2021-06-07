@@ -270,6 +270,28 @@ void drawStartScreen() {
     row5 = 0x3C; // **OOOO**
 }
 
+unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
+enum SM3_STATES { SM3_NotPlaying, SM3_Playing };
+int TickFct_PongTick() {
+    switch (state) {
+        default:
+            if (active) state = SM3_Playing;
+            else state = SM3_NotPlaying;
+            break;
+    }
+    
+    switch (state) {
+        default:
+            break;
+        case SM3_Playing:
+            pongGameTick++;
+            PongTick();
+            break;
+    }
+    
+    return state;
+}
+
 // SM to control game states
 enum SM2_STATES { SM2_MenuRise, SM2_MenuFall, SM2_PlayingRise, SM2_PlayingFall };
 int TickFct_GameState(int state) {
@@ -297,14 +319,15 @@ int TickFct_GameState(int state) {
     switch (state) {
         case SM2_PlayingRise:
             PongDraw();
+            active = 0x00;
             break;
         case SM2_PlayingFall:
-            pongGameTick++;
-            PongTick();
             PongDraw();
+            active = 0x01;
             break;
         default:
             drawStartScreen();
+            active = 0x00;
             break;
     }
     
@@ -390,8 +413,8 @@ int main(void) {
     DDRD = 0xFF; PORTD = 0x00;
 
     /* Insert your solution below */
-    static task task0, task1, task2;
-    task *tasks[] = { &task2, &task1, &task0 }; // Task execution order
+    static task task0, task1, task2, task3;
+    task *tasks[] = { &task3, &task2, &task1, &task0 }; // Task execution order
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = 0;
@@ -409,6 +432,11 @@ int main(void) {
     task2.period = 1;
     task2.elapsedTime = task2.period;
     task2.TickFct = &TickFct_GameState;
+    
+    task3.state = start;
+    task3.period = 333;
+    task3.elapsedTime = task3.period;
+    task3.TickFct = &TickFct_PongTick;
     
     TimerSet(1);
     TimerOn();
