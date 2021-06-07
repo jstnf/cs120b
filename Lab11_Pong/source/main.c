@@ -357,7 +357,7 @@ int TickFct_PlayerControl(int state) {
 unsigned char cpuControl = 0x01;
 enum SM5_STATES { SM5_Wait, SM5_Random, SM5_Follow };
 int TickFct_CPUControl(int state) {
-    if (active = 0x00) {
+    if (active == 0x00) {
         cpuControl = 0x01;
         return SM5_Wait;
     }
@@ -375,10 +375,10 @@ int TickFct_CPUControl(int state) {
     
     switch (state) {
         case SM5_Follow:
-            unsigned char yPos = ball_pos & 0x0F;
-            unsigned char paddlePos = paddles_pos & 0x0F;
             // If there is a difference between the ball pos and p2 pos greater than 2, move in the correct direction
             unsigned char diff;
+            unsigned char yPos = ball_pos & 0x0F;
+            unsigned char paddlePos = paddles_pos & 0x0F;
             if (paddlePos > yPos) {
                 diff = paddlePos - yPos;
                 if (diff > 0x01) moveP2PaddleUp();
@@ -388,8 +388,7 @@ int TickFct_CPUControl(int state) {
             }
             break;
         case SM5_Random:
-            // If pong game tick is even, go up, otherwise go down
-            if (pongGameTick & 2) {
+            if (rand() & 2) {
                 moveP2PaddleDown();
             } else {
                 moveP2PaddleUp();
@@ -399,6 +398,8 @@ int TickFct_CPUControl(int state) {
             // Do nothing :)
             break;
     }
+    
+    return state;
 }
 
 // SM for the game tick
