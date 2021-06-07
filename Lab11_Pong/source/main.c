@@ -17,47 +17,60 @@
 #include "simAVRHeader.h"
 #endif
 
-//--------------------------------------
-// LED Matrix Demo SynchSM
-// Period: 100 ms
-//--------------------------------------
-enum Demo_States {shift};
-int Demo_Tick(int state) {
+unsigned char row1 = 0x11;
+unsigned char row2 = 0x22;
+unsigned char row3 = 0x43;
+unsigned char row4 = 0x84;
+unsigned char row5 = 0x15;
 
-	// Local Variables
-	static unsigned char pattern = 0x80;	// LED pattern - 0: LED off; 1: LED on
-	static unsigned char row = 0xFE;  	// Row(s) displaying pattern. 
-							// 0: display pattern on row
-							// 1: do NOT display pattern on row
-	// Transitions
-	switch (state) {
-		case shift:	
-        break;
-		default:	
-            state = shift;
-			break;
-	}	
-	// Actions
-	switch (state) {
-        case shift:	
-            if (row == 0xEF && pattern == 0x01) { // Reset demo 
-				pattern = 0x80;		    
-				row = 0xFE;
-			} else if (pattern == 0x01) { // Move LED to start of next row
-				pattern = 0x80;
-				row = (row << 1) | 0x01;
-			} else { // Shift LED one spot to the right on current row
-				pattern >>= 1;
-			}
-			break;
-		default:
-	break;
-	}
-	PORTC = pattern;	// Pattern to display
-	PORTD = row;		// Row(s) displaying pattern	
-	return state;
+unsigned char row = 0x01;
+unsigned char pattern = 0x00;
+
+enum SM1_LED { SM1_SMStart, SM1_R1, SM1_R2, SM1_R3, SM1_R4, SM1_R5 };
+int TickFct_DrawLED(int state) {
+    switch (state) {
+        default:
+            state = SM1_R1;
+            break;
+        case SM1_R1:
+            state = SM1_R2;
+            break;
+        case SM1_R2:
+            state = SM1_R3;
+            break;
+        case SM1_R3:
+            state = SM1_R4;
+            break;
+        case SM1_R4:
+            state = SM1_R5;
+            break;
+    }
+    
+    switch (state) {
+        default:
+            row = 0xFE;
+            pattern = row1;
+            break;
+        case SM1_R2:
+            row = 0xFD;
+            pattern = row2;
+            break;
+        case SM1_R3:
+            row = 0xFB;
+            pattern = row3;
+            break;
+        case SM1_R4:
+            row = 0xF7;
+            pattern = row4;
+            break;
+        case SM1_R5:
+            row = 0xEF;
+            pattern = row5;
+            break;
+    }
+    
+    return state;
 }
-
 
 // SM to create outputs (req. since lab 9)
 enum SM0_STATES { SM0_SMStart, SM0_Combine };
@@ -70,6 +83,8 @@ int TickFct_Combine(int state) {
     
     switch (state) {
         case SM0_Combine:
+            PORTC = pattern;
+            PORTD = row;
             break;
         default:
             break;
@@ -84,8 +99,8 @@ int main(void) {
     DDRD = 0xFF; PORTD = 0x00;
 
     /* Insert your solution below */
-    static task task0, demo;
-    task *tasks[] = { &task0, &demo };
+    static task task0, task1;
+    task *tasks[] = { &task0, &task1 };
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = 0;
@@ -94,10 +109,10 @@ int main(void) {
     task0.elapsedTime = task0.period;
     task0.TickFct = &TickFct_Combine;
     
-    demo.state = start;
-    demo.period = 100;
-    demo.elapsedTime = demo.period;
-    demo.TickFct = &Demo_Tick;
+    task1.state = start;
+    task1.period = 1;
+    task1.elapsedTime = task1.period;
+    task1.TickFct = &TickFct_DrawLED;
     
     TimerSet(1);
     TimerOn();
