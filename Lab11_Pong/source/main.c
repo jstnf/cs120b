@@ -126,9 +126,11 @@ void doSpinP1() {
     switch (spin & 0xF0) {
         case 0x00: // Spin up
             increaseBallSpeed();
+            ball_vel = 0x10;
             break;
         case 0x20: // Spin down
             increaseBallSpeed();
+            ball_vel = 0x12;
             break;
         default: // No spin
             break;
@@ -139,9 +141,11 @@ void doSpinP2() {
     switch (spin & 0x0F) {
         case 0x00: // Spin up
             increaseBallSpeed();
+            ball_vel = 0x00;
             break;
         case 0x02: // Spin down
             increaseBallSpeed();
+            ball_vel = 0x02;
             break;
         default: // No spin
             break;
@@ -381,6 +385,8 @@ void moveP2PaddleDown() {
 unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
 
 // SM for Player controls
+unsigned char maintainSpinTicks = 0x00;
+
 enum SM4_STATES { SM4_Wait, SM4_UpRise, SM4_UpFall, SM4_DownRise, SM4_DownFall };
 int TickFct_PlayerControl(int state) {
     if (active == 0x00) return SM4_Wait; // Reset this if the game is not active
@@ -617,6 +623,7 @@ int TickFct_Combine(int state) {
 int main(void) {
     /* Insert DDR and PORT initializations */
     DDRA = 0x00; PORTA = 0xFF;
+    DDRB = 0x40; PORTB = 0x00;
     DDRC = 0xFF; PORTC = 0x00;
     DDRD = 0xFF; PORTD = 0x00;
 
