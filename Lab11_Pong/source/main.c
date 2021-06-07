@@ -29,22 +29,23 @@ unsigned char scoreP1 = 0x00;
 unsigned char scoreP2 = 0x00;
 unsigned int pongGameTick = 0;
 
-unsigned char ball_vel = 0x11; // [4] is X vel - 0 moves left, 1 moves right; [1:0] is Y vel - 0 ball moves up, 1 ball moves straight, 2 ball moves down
+unsigned char ball_vel = 0x01; // [4] is X vel - 0 moves left, 1 moves right; [1:0] is Y vel - 0 ball moves up, 1 ball moves straight, 2 ball moves down
 unsigned char ball_pos = 0x33; // [7:4] is X pos; [3:0] is Y pos - 0 is top border, game area 1-5, 6 is bottom border
 
 unsigned char paddles_pos = 0x33; // [7:4] is P1 (left) pos; [3:0] is P2 (right) pos - 2 is top position, 3 is middle position, 4 is bottom position
 
 // GAME LOGIC
+void roundResetGame() {
+    ball_vel = 0x01;
+    ball_pos = 0x33;
+    paddles_pos = 0x33;
+}
+
 void fullResetGame() {
     scoreP1 = 0x00;
     scoreP2 = 0x00;
     pongGameTick = 0;
-}
-
-void roundResetGame() {
-    ball_vel = 0x11;
-    ball_pos = 0x33;
-    paddles_pos = 0x33;
+    roundResetGame();
 }
 
 // Use the current ball_vel and ball_pos to get the next position of the ball
@@ -127,13 +128,13 @@ void PongTick() {
             // No one wins, update the x and y velocity and calculate new position of ball (now moving right)
             
             case 0x01: // Ball now moves up right
-                ball_vel = 0x11;
+                ball_vel = 0x10;
                 break;
             case 0x02: // Ball now moves down right
                 ball_vel = 0x12;
                 break;
             case 0x03: // Ball now moves straight right
-                ball_vel = 0x10;
+                ball_vel = 0x11;
                 break;
         }
     } else if ((nextPos & 0xF0) == 0x70) { // The ball has reached the right side, isolate the right paddle position
@@ -145,13 +146,13 @@ void PongTick() {
             // No one wins, update the x and y velocity and calculate new position of ball (now moving right)
             
             case 0x01: // Ball now moves up left
-                ball_vel = 0x01;
+                ball_vel = 0x00;
                 break;
             case 0x02: // Ball now moves down left
                 ball_vel = 0x02;
                 break;
             case 0x03: // Ball now moves straight left
-                ball_vel = 0x00;
+                ball_vel = 0x01;
                 break;
         }
     }
@@ -174,6 +175,7 @@ void PongTick() {
         case 0x01:
         case 0x02:
             // TODO code win condition
+            roundResetGame();
             pongGameTick = 0;
             break;
     }
