@@ -308,7 +308,7 @@ int TickFct_PlayerControl(int state) {
             paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
             break;
         case SM4_DownRise:
-            isolatedPadlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1) << 4;
+            isolatedPaddlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1) << 4;
             paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
             break;
         default:
