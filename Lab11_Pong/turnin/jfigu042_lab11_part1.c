@@ -7,8 +7,7 @@
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  *
- *  Basic Req: https://youtu.be/Ra6260dWJCc
- *  Advancement 1: <>
+ *  Demo Link: https://youtu.be/Ra6260dWJCc
  */
 #include <avr/io.h>
 #include "pwm.h"
@@ -45,16 +44,13 @@ unsigned int pongGameTick = 0;
 
 unsigned char ball_vel = 0x01; // [4] is X vel - 0 moves left, 1 moves right; [1:0] is Y vel - 0 ball moves up, 1 ball moves straight, 2 ball moves down
 unsigned char ball_pos = 0x33; // [7:4] is X pos; [3:0] is Y pos - 0 is top border, game area 1-5, 6 is bottom border
-unsigned char ball_speed = 0x04; // Can range between 0 and 4, simply change how often the game ticks
-unsigned char paddles_pos = 0x33; // [7:4] is P1 (left) pos; [3:0] is P2 (right) pos - 2 is top position, 3 is middle position, 4 is bottom position
 
-unsigned char spin = 0x11; // This variable is changed when a paddle moves - [7:4] for P1; [3:0] for P2; 0 - spin up, 1 - no spin, 2 - spin down
+unsigned char paddles_pos = 0x33; // [7:4] is P1 (left) pos; [3:0] is P2 (right) pos - 2 is top position, 3 is middle position, 4 is bottom position
 
 // GAME LOGIC
 void roundResetGame() {
     ball_vel = 0x01;
     ball_pos = 0x33;
-    ball_speed = 0x04;
     paddles_pos = 0x33;
 }
 
@@ -113,53 +109,10 @@ unsigned char checkWinPosition(unsigned char yPos, unsigned char paddlePos) {
     }
 }
 
-void increaseBallSpeed() {
-    ball_speed = ball_speed - 1 == 0x00 ? 0x01 : ball_speed - 1;
-}
-
-void decreaseBallSpeed() {
-    ball_speed = ball_speed + 1 == 0x05 ? 0x04 : ball_speed + 1;
-}
-
-// Spin logic 
-void doSpinP1() {
-    switch (spin & 0xF0) {
-        case 0x00: // Spin up
-            increaseBallSpeed();
-            break;
-        case 0x20: // Spin down
-            increaseBallSpeed();
-            break;
-        default: // No spin
-            break;
-    }
-}
-
-void doSpinP2() {
-    switch (spin & 0x0F) {
-        case 0x00: // Spin up
-            increaseBallSpeed();
-            break;
-        case 0x02: // Spin down
-            increaseBallSpeed();
-            break;
-        default: // No spin
-            break;
-    }
-}
-
-// Function variable for speed
-unsigned char ticksUntilNext = 0x04;
-
 void PongTick() {
     // The first tick will reset the game to starting state, but maintain score
     if (pongGameTick == 1) {
-        ticksUntilNext = 0x04;
         roundResetGame();
-    }
-    
-    if (ticksUntilNext > 0x00) {
-        ticksUntilNext--;
     }
     
     // Get unchecked next position
@@ -189,21 +142,12 @@ void PongTick() {
             
             case 0x01: // Ball now moves up right
                 ball_vel = 0x10;
-                increaseBallSpeed();
-                doSpinP1();
-                ticksUntilNext = ball_speed;
                 break;
             case 0x02: // Ball now moves down right
                 ball_vel = 0x12;
-                decreaseBallSpeed();
-                doSpinP1();
-                ticksUntilNext = ball_speed;
                 break;
             case 0x03: // Ball now moves straight right
                 ball_vel = 0x11;
-                increaseBallSpeed();
-                doSpinP1();
-                ticksUntilNext = ball_speed;
                 break;
         }
     } else if ((nextPos & 0xF0) == 0x70) { // The ball has reached the right side, isolate the right paddle position
@@ -216,21 +160,12 @@ void PongTick() {
             
             case 0x01: // Ball now moves up left
                 ball_vel = 0x00;
-                increaseBallSpeed();
-                doSpinP2();
-                ticksUntilNext = ball_speed;
                 break;
             case 0x02: // Ball now moves down left
                 ball_vel = 0x02;
-                decreaseBallSpeed();
-                doSpinP2();
-                ticksUntilNext = ball_speed;
                 break;
             case 0x03: // Ball now moves straight left
                 ball_vel = 0x01;
-                increaseBallSpeed();
-                doSpinP2();
-                ticksUntilNext = ball_speed;
                 break;
         }
     }
@@ -354,28 +289,24 @@ void moveP1PaddleUp() {
     unsigned char isolatedPaddlePos = paddles_pos >> 4;
     isolatedPaddlePos = (isolatedPaddlePos - 1 == 0x01 ? 0x02 : isolatedPaddlePos - 1) << 4;
     paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
-    spin = (spin & 0x0F) | 0x00;
 }
 
 void moveP1PaddleDown() {
     unsigned char isolatedPaddlePos = paddles_pos >> 4;
     isolatedPaddlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1) << 4;
     paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
-    spin = (spin & 0x0F) | 0x20;
 }
 
 void moveP2PaddleUp() {
     unsigned char isolatedPaddlePos = paddles_pos & 0x0F;
     isolatedPaddlePos = (isolatedPaddlePos - 1 == 0x01 ? 0x02 : isolatedPaddlePos - 1);
     paddles_pos = (paddles_pos & 0xF0) | isolatedPaddlePos;
-    spin = (spin & 0xF0) | 0x00;
 }
 
 void moveP2PaddleDown() {
     unsigned char isolatedPaddlePos = paddles_pos & 0x0F;
     isolatedPaddlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1);
     paddles_pos = (paddles_pos & 0xF0) | isolatedPaddlePos;
-    spin = (spin & 0xF0) | 0x02;
 }
 
 unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
@@ -416,7 +347,6 @@ int TickFct_PlayerControl(int state) {
             moveP1PaddleDown();
             break;
         default:
-            spin = (spin & 0x0F) | 0x10;
             break;
     }
     
@@ -443,6 +373,8 @@ int TickFct_CPUControl(int state) {
             break;
     }
     
+    
+    unsigned char diff;
     unsigned char yPos;
     unsigned char paddlePos;
     
@@ -450,13 +382,13 @@ int TickFct_CPUControl(int state) {
         case SM5_Follow:
             yPos = ball_pos & 0x0F;
             paddlePos = paddles_pos & 0x0F;
-            // If there is a difference between the ball pos and p2 pos greater than 0, move in the correct direction
+            // If there is a difference between the ball pos and p2 pos greater than 2, move in the correct direction
             if (paddlePos > yPos) {
-                moveP2PaddleUp();
+                diff = paddlePos - yPos;
+                if (diff > 0x01) moveP2PaddleUp();
             } else if (paddlePos < yPos) {
-                moveP2PaddleDown();
-            } else {
-                spin = (spin & 0xF0) | 0x01;
+                diff = yPos - paddlePos;
+                if (diff > 0x01) moveP2PaddleDown();
             }
             break;
         case SM5_Random:
@@ -468,7 +400,6 @@ int TickFct_CPUControl(int state) {
             break;
         default:
             // Do nothing :)
-            spin = (spin & 0xF0) | 0x01;
             break;
     }
     
@@ -642,7 +573,7 @@ int main(void) {
     task2.TickFct = &TickFct_GameState;
     
     task3.state = start;
-    task3.period = 100;
+    task3.period = 333;
     task3.elapsedTime = task3.period;
     task3.TickFct = &TickFct_PongTick;
     
