@@ -13,9 +13,22 @@
 #include "pwm.h"
 #include "timer.h"
 #include "scheduler.h"
+#include "stdint.h"
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
+
+// RNG (from C standard, see https://stackoverflow.com/questions/4768180/rand-implementation)
+static unsigned long int next = 1;
+
+int rand(void) { // RAND_MAX assumed to be 32767
+    next = next * 1103515245 + 12345;
+    return (unsigned int)(next/65536) % 32768;
+}
+
+void srand(unsigned int seed) {
+    next = seed;
+}
 
 // "2D Matrix" contains patterns for each row
 unsigned char row1 = 0x00;
@@ -272,6 +285,30 @@ void drawStartScreen() {
     row5 = 0x3C; // **OOOO**
 }
 
+void moveP1PaddleUp() {
+    unsigned char isolatedPaddlePos = paddles_pos >> 4;
+    isolatedPaddlePos = (isolatedPaddlePos - 1 == 0x01 ? 0x02 : isolatedPaddlePos - 1) << 4;
+    paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
+}
+
+void moveP1PaddleDown() {
+    unsigned char isolatedPaddlePos = paddles_pos >> 4;
+    isolatedPaddlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1) << 4;
+    paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
+}
+
+void moveP2PaddleUp() {
+    unsigned char isolatedPaddlePos = paddles_pos & 0x0F;
+    isolatedPaddlePos = (isolatedPaddlePos - 1 == 0x01 ? 0x02 : isolatedPaddlePos - 1);
+    paddles_pos = (paddles_pos & 0xF0) | isolatedPaddlePos;
+}
+
+void moveP2PaddleDown() {
+    unsigned char isolatedPaddlePos = paddles_pos & 0x0F;
+    isolatedPaddlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1);
+    paddles_pos = (paddles_pos & 0xF0) | isolatedPaddlePos;
+}
+
 unsigned char active = 0x00; // 0x00 is inactive, 0x01 is active - this determines if the game should tick or not
 
 // SM for Player controls
@@ -301,21 +338,67 @@ int TickFct_PlayerControl(int state) {
             break;
     }
     
-    unsigned char isolatedPaddlePos = paddles_pos >> 4;
+    
     switch (state) {
         case SM4_UpRise:
-            isolatedPaddlePos = (isolatedPaddlePos - 1 == 0x01 ? 0x02 : isolatedPaddlePos - 1) << 4;
-            paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
+            moveP1PaddleUp();
             break;
         case SM4_DownRise:
-            isolatedPaddlePos = (isolatedPaddlePos + 1 == 0x05 ? 0x04 : isolatedPaddlePos + 1) << 4;
-            paddles_pos = (paddles_pos & 0x0F) | isolatedPaddlePos;
+            moveP1PaddleDown();
             break;
         default:
             break;
     }
     
     return state;
+}
+
+// SM for CPU
+unsigned char cpuControl = 0x01;
+enum SM5_STATES { SM5_Wait, SM5_Random, SM5_Follow };
+int TickFct_CPUControl(int state) {
+    if (active = 0x00) {
+        cpuControl = 0x01;
+        return SM5_Wait;
+    }
+    
+    switch (state) {
+        default:
+            cpuControl--;
+            if (cpuControl == 0x00) {
+                state = rand() % 3;
+                cpuControl = (char) (rand() % 4) + 1;
+            }
+            // Randomly choose one of the three states and how long they should stay in that state (1-4 ticks @ 200ms/tick)
+            break;
+    }
+    
+    switch (state) {
+        case SM5_Follow:
+            unsigned char yPos = ball_pos & 0x0F;
+            unsigned char paddlePos = paddles_pos & 0x0F;
+            // If there is a difference between the ball pos and p2 pos greater than 2, move in the correct direction
+            unsigned char diff;
+            if (paddlePos > yPos) {
+                diff = paddlePos - yPos;
+                if (diff > 0x01) moveP2PaddleUp();
+            } else if (paddlePos < yPos) {
+                diff = yPos - paddlePos;
+                if (diff > 0x01) moveP2PaddleDown();
+            }
+            break;
+        case SM5_Random:
+            // If pong game tick is even, go up, otherwise go down
+            if (pongGameTick & 2) {
+                moveP2PaddleDown();
+            } else {
+                moveP2PaddleUp();
+            }
+            break;
+        default:
+            // Do nothing :)
+            break;
+    }
 }
 
 // SM for the game tick
@@ -343,6 +426,9 @@ int TickFct_PongTick(int state) {
 // SM to control game states
 enum SM2_STATES { SM2_MenuRise, SM2_MenuFall, SM2_PlayingRise, SM2_PlayingFall };
 int TickFct_GameState(int state) {
+    // This will keep shuffling rand in order to somewhat guarantee randomness
+    rand();
+    
     switch (state) {
         default:
             if ((~PINA & 0x80) == 0x00) state = SM2_MenuFall;
@@ -461,8 +547,8 @@ int main(void) {
     DDRD = 0xFF; PORTD = 0x00;
 
     /* Insert your solution below */
-    static task task0, task1, task2, task3, task4;
-    task *tasks[] = { &task4, &task3, &task2, &task1, &task0 }; // Task execution order
+    static task task0, task1, task2, task3, task4, task5;
+    task *tasks[] = { &task4, &task5, &task3, &task2, &task1, &task0 }; // Task execution order
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = 0;
@@ -490,6 +576,11 @@ int main(void) {
     task4.period = 20;
     task4.elapsedTime = task4.period;
     task4.TickFct = &TickFct_PlayerControl;
+    
+    task5.state = start;
+    task5.period = 200;
+    task5.elapsedTime = task5.period;
+    task5.TickFct = &TickFct_CPUControl;
     
     TimerSet(1);
     TimerOn();
