@@ -49,6 +49,8 @@ int TickFct_SoundPlayer(int state) {
             set_PWM(currentNote);
             break;
     }
+    
+    return state;
 }
 
 void hitSound() {
@@ -675,8 +677,8 @@ int main(void) {
     DDRD = 0xFF; PORTD = 0x00;
 
     /* Insert your solution below */
-    static task task0, task1, task2, task3, task4, task5;
-    task *tasks[] = { &task4, &task5, &task3, &task2, &task1, &task0 }; // Task execution order
+    static task task0, task1, task2, task3, task4, task5, task6;
+    task *tasks[] = { &task4, &task5, &task3, &task2, &task1, &task0, &task6 }; // Task execution order
     const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
     
     const char start = 0;
@@ -709,6 +711,11 @@ int main(void) {
     task5.period = 200;
     task5.elapsedTime = task5.period;
     task5.TickFct = &TickFct_CPUControl;
+    
+    task6.state = start;
+    task6.period = 15;
+    task6.elapsedTime = task6.period;
+    task6.TickFct = &TickFct_SoundPlayer;
     
     TimerSet(1);
     TimerOn();
