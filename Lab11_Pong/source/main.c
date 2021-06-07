@@ -55,12 +55,12 @@ int TickFct_SoundPlayer(int state) {
 
 void hitSound() {
     currentNote = HITNOTE;
-    playTicks = 0x0D;
+    playTicks = 0x03;
 }
 
 void winSound() {
     currentNote = WINNOTE;
-    playTicks = 0x4F;
+    playTicks = 0x0D;
 }
 
 // RNG (from C standard, see https://stackoverflow.com/questions/4768180/rand-implementation)
