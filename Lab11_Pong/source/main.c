@@ -56,7 +56,7 @@ unsigned char getNextPos() {
     if (ball_vel & 0x40) {  // Move right
         x++;
     } else {                // Move left
-        x--
+        x--;
     }
     result = result | (x << 4);
     
