@@ -47,9 +47,9 @@ void roundResetGame() {
     paddles_pos = 0x33;
 }
 
-void PongTick(int tickNum) {
+void PongTick() {
     // The first tick will reset the game to starting state, but maintain score
-    if (tick == 1) {
+    if (pongGameTick == 1) {
         roundResetGame();
     }
 }
@@ -146,7 +146,7 @@ void drawStartScreen() {
 }
 
 // SM to control game states
-enum SM2_STATES { SM2_MenuRise, SM2_MenuFall, SM2_PlayingRise, SM2_PlayingFall }
+enum SM2_STATES { SM2_MenuRise, SM2_MenuFall, SM2_PlayingRise, SM2_PlayingFall };
 int TickFct_GameState(int state) {
     switch (state) {
         default:
@@ -175,7 +175,7 @@ int TickFct_GameState(int state) {
             break;
         case SM2_PlayingFall:
             pongGameTick++;
-            PongTick(pongGameTick);
+            PongTick();
             PongDraw();
             break;
         default:
